@@ -1,35 +1,91 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React from 'react';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+/**
+ * TabsLayout
+ * ----
+ * Defines the bottom tab navigation for the app
+ * 
+ * Mental model:
+ * - This file acts as the "navigation controller" for everything inside the (tabs) folder
+ * - Each Tabs.Screen maps directly to a file in this folder
+ * 
+ * Example:
+ * - name="fitness" -> fitness.tsx
+ * - name="index" -> index.tsx (Dashboard)
+ */
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function TabsLayout() {
+    return (
+        <Tabs
+            screenOptions={{
+                /**
+                 * Hides the header at the top of each screen
+                 * We do this because:
+                 * - We want full controll over UI
+                 * - We will design custom header later
+                 */
+                headerShown: false,
 
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+                /**
+                 * Styles the bottom tab bar itself
+                 * This is purely UI configiration
+                 */
+                tabBarStyle: {
+                    backgroundColor: '#0E0E10',
+                    borderTopColor: '#1A1A1E'
+                },
+
+                /**
+                 * Active / inactive colors for tab icons & labels 
+                 */
+                tabBarActiveTintColor: '#E85C5C',
+                tabBarInactiveTintColor: '#888'
+            }}
+        >
+            {/* --- Dashboard Tab --- */}
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: 'Dashboard',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="home-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+
+            {/* --- Fitness Tab --- */}
+            <Tabs.Screen
+                name="fitness"
+                options={{
+                    title: 'Fitness',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="barbell-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+
+            {/* --- Notes Tab --- */}
+            <Tabs.Screen
+                name="notes"
+                options={{
+                    title: 'Notes',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="document-text-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+
+            {/* --- Goals Tab --- */}
+            <Tabs.Screen
+                name="goals"
+                options={{
+                    title: 'Goals',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="flag-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }
