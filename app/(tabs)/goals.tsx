@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -109,7 +110,7 @@ export default function GoalsScreen() {
             {/* === Top Bar === */}
             <View
                 style={{
-                    height: 48,
+                    height: 64,
                     marginTop: 4,
                     backgroundColor: COLORS.topBar,
                     borderRadius: 12,
@@ -120,18 +121,22 @@ export default function GoalsScreen() {
                     
                 }}>
                 {/* space for profil pic */}
-                <View style={{ width: 48, justifyContent: 'center' }}>
+                <Pressable 
+                    onPress={() => router.push('/profile')}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}
+                >
                     <View style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 14,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
                         backgroundColor: '#4A90E2',
                         justifyContent: 'center',
                         alignItems: 'center',
                     }}>
-                        <Ionicons name="person" size={16} color={COLORS.text} />
+                        <Ionicons name="person" size={24} color={COLORS.text} />
                     </View>
-                </View>
+                </Pressable>
 
                 {/* Centered Page title */}
                     <Text style={{
