@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 const COLORS = {
     bg: '#0E0E10',
@@ -17,14 +17,14 @@ const COLORS = {
 }
 
 /**
- * FitnessScreen
+ * NotesScreen
  * ---
- * This is the fitness/workout screen of the app
+ * This is the notes screen of the app
  *
  * Its like view in MVC
  */
 
-export default function FitnessScreen() {
+export default function NotesScreen() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: COLORS.bg}}>
             <ScrollView 
@@ -74,7 +74,7 @@ export default function FitnessScreen() {
                         fontWeight: '700',
                         color: COLORS.text
                     }}>
-                        Fitness
+                        Notes
                     </Text>
 
                 {/* Right side icons */}
@@ -111,68 +111,24 @@ export default function FitnessScreen() {
                 marginBottom: 24
             }} />
 
-            {/* === Start Workout Section === */}
+            {/* === Create New Note === */}
             <View style={{ marginBottom: 24 }}>
-                <Pressable
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 20,
-                        backgroundColor: COLORS.card,
-                        borderRadius: 16,
-                        marginBottom: 16,
-                    }}
-                >
-                    <Ionicons name="play-circle" size={32} color="#E85C5C" style={{ marginRight: 12 }} />
-                    <Text style={{ color: COLORS.text, fontSize: 20, fontWeight: '700' }}>
-                        Start Workout
-                    </Text>
-                </Pressable>
-            </View>
-
-            {/* === Active Workout Plan === */}
-            <View style={{ marginBottom: 24 }}>
-                <Text style={{
-                    fontSize: 20,
-                    fontWeight: '600',
-                    color: COLORS.text,
-                    marginBottom: 12
-                }}>
-                    Active Plan
-                </Text>
-
-                <View style={{
-                    padding: 16,
-                    backgroundColor: COLORS.card,
-                    borderRadius: 12,
-                    marginBottom: 12,
-                    opacity: 0.6,
-                }}>
-                    <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', fontStyle: 'italic', marginBottom: 8 }}>
-                        No active plan
-                    </Text>
-                    <Text style={{ color: COLORS.textDime, fontSize: 14 }}>
-                        Create or select a workout plan to get started
-                    </Text>
-                </View>
-
                 <Pressable style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'center',
                     padding: 14,
-                    backgroundColor: COLORS.cardSecondary,
                     borderRadius: 12,
+                    backgroundColor: COLORS.cardSecondary,
+                    marginBottom: 12
                 }}>
                     <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime} style={{ marginRight: 8 }} />
                     <Text style={{ color: COLORS.textDime, fontSize: 16 }}>
-                        + Create new plan
+                        + New note ...
                     </Text>
                 </Pressable>
             </View>
 
-            {/* === Workout History === */}
+            {/* === Quick Notes Section === */}
             <View style={{ marginBottom: 24 }}>
                 <Text style={{
                     fontSize: 20,
@@ -180,7 +136,112 @@ export default function FitnessScreen() {
                     color: COLORS.text,
                     marginBottom: 12
                 }}>
-                    Recent Workouts
+                    Quick Notes
+                </Text>
+
+                <View>
+                    {['Example: Weekly meal plan', 'Example: Stretching routine research', 'Example: Order new resistance bands'].map((note, index) => (
+                        <Pressable
+                            key={index}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                paddingHorizontal: 8,
+                                opacity: 0.6,
+                                marginBottom: 8,
+                            }}
+                        >
+                            <Ionicons name="document-text-outline" size={18} color={COLORS.textDime} style={{ marginRight: 12 }} />
+                            <Text style={{ color: COLORS.text, fontSize: 14, fontStyle: 'italic', flex: 1 }}>
+                                {note}
+                            </Text>
+                            <Ionicons name="chevron-forward-outline" size={16} color={COLORS.textDime} />
+                        </Pressable>
+                    ))}
+                </View>
+            </View>
+
+            {/* === All Notes Section === */}
+            <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                    fontSize: 20,
+                    fontWeight: '600',
+                    color: COLORS.text,
+                    marginBottom: 12
+                }}>
+                    All Notes
+                </Text>
+
+                <View style={{
+                    padding: 20,
+                    backgroundColor: COLORS.card,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    opacity: 0.6,
+                }}>
+                    <Ionicons name="document-text-outline" size={48} color={COLORS.textDime} style={{ marginBottom: 12 }} />
+                    <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
+                        No notes yet. Create your first note to get started!
+                    </Text>
+                </View>
+            </View>
+
+            {/* === Note Categories === */}
+            <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                    fontSize: 20,
+                    fontWeight: '600',
+                    color: COLORS.text,
+                    marginBottom: 12
+                }}>
+                    Categories
+                </Text>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                    {[
+                        { name: 'Fitness', icon: 'barbell-outline', count: 0 },
+                        { name: 'Meal Plans', icon: 'restaurant-outline', count: 0 },
+                        { name: 'Ideas', icon: 'bulb-outline', count: 0 },
+                        { name: 'Shopping', icon: 'cart-outline', count: 0 },
+                        { name: 'Research', icon: 'search-outline', count: 0 },
+                        { name: 'Other', icon: 'folder-outline', count: 0 },
+                    ].map((category, index) => (
+                        <Pressable
+                            key={index}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 10,
+                                paddingHorizontal: 16,
+                                backgroundColor: COLORS.chip,
+                                borderRadius: 20,
+                                borderWidth: 1,
+                                borderColor: COLORS.chipBorder,
+                                opacity: 0.6,
+                            }}
+                        >
+                            <Ionicons name={category.icon as any} size={16} color={COLORS.textDime} style={{ marginRight: 8 }} />
+                            <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500', marginRight: 8 }}>
+                                {category.name}
+                            </Text>
+                            <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
+                                ({category.count})
+                            </Text>
+                        </Pressable>
+                    ))}
+                </View>
+            </View>
+
+            {/* === Recent Notes === */}
+            <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                    fontSize: 20,
+                    fontWeight: '600',
+                    color: COLORS.text,
+                    marginBottom: 12
+                }}>
+                    Recent Notes
                 </Text>
 
                 <View style={{
@@ -190,12 +251,12 @@ export default function FitnessScreen() {
                     opacity: 0.6,
                 }}>
                     <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
-                        No workouts completed yet
+                        No recent notes
                     </Text>
                 </View>
             </View>
 
-            {/* === Exercise Library === */}
+            {/* === Statistics === */}
             <View style={{ marginBottom: 24 }}>
                 <Text style={{
                     fontSize: 20,
@@ -203,45 +264,12 @@ export default function FitnessScreen() {
                     color: COLORS.text,
                     marginBottom: 12
                 }}>
-                    Exercise Library
-                </Text>
-
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                    {['Chest', 'Back', 'Legs', 'Arms', 'Shoulders', 'Cardio'].map((category, index) => (
-                        <Pressable
-                            key={index}
-                            style={{
-                                paddingVertical: 12,
-                                paddingHorizontal: 20,
-                                backgroundColor: COLORS.chip,
-                                borderRadius: 20,
-                                borderWidth: 1,
-                                borderColor: COLORS.chipBorder,
-                            }}
-                        >
-                            <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500' }}>
-                                {category}
-                            </Text>
-                        </Pressable>
-                    ))}
-                </View>
-            </View>
-
-            {/* === Stats Overview === */}
-            <View style={{ marginBottom: 24 }}>
-                <Text style={{
-                    fontSize: 20,
-                    fontWeight: '600',
-                    color: COLORS.text,
-                    marginBottom: 12
-                }}>
-                    Stats
+                    Statistics
                 </Text>
 
                 <View style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                    marginBottom: 12,
                 }}>
                     <View style={{
                         flex: 1,
@@ -252,7 +280,7 @@ export default function FitnessScreen() {
                         alignItems: 'center',
                     }}>
                         <Text style={{ color: COLORS.textDime, fontSize: 12, marginBottom: 4 }}>
-                            Total Workouts
+                            Total Notes
                         </Text>
                         <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '700' }}>
                             0
@@ -274,20 +302,6 @@ export default function FitnessScreen() {
                             0
                         </Text>
                     </View>
-                </View>
-
-                <View style={{
-                    padding: 16,
-                    backgroundColor: COLORS.card,
-                    borderRadius: 12,
-                    alignItems: 'center',
-                }}>
-                    <Text style={{ color: COLORS.textDime, fontSize: 12, marginBottom: 4 }}>
-                        Total Time
-                    </Text>
-                    <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '700' }}>
-                        0h 0m
-                    </Text>
                 </View>
             </View>
 
