@@ -1,22 +1,13 @@
+import { Divider } from '@/components/common/Divider';
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
+import { isDateInCurrentWeek } from '@/utils/calculations';
 import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * NotesScreen
@@ -89,15 +80,10 @@ export default function NotesScreen() {
     const statistics = useMemo(() => {
         const totalNotes = notes.length;
         
-        // Calculate notes created this week
-        const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-        startOfWeek.setHours(0, 0, 0, 0);
-        
+        // Calculate notes created this week using utility function
         const notesThisWeek = notes.filter(note => {
             const noteDate = new Date(note.createdAt);
-            return noteDate >= startOfWeek;
+            return isDateInCurrentWeek(noteDate);
         }).length;
 
         return {
@@ -115,82 +101,10 @@ export default function NotesScreen() {
             >
 
             {/* === Top Bar === */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    position: 'relative',
-                    
-                }}>
-                {/* space for profil pic */}
-                <Pressable 
-                    onPress={() => router.push('/profile')}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}
-                >
-                    <View style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor: '#4A90E2',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}>
-                        <Ionicons name="person" size={24} color={COLORS.text} />
-                    </View>
-                </Pressable>
-
-                {/* Centered Page title */}
-                    <Text style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text
-                    }}>
-                        Notes
-                    </Text>
-
-                {/* Right side icons */}
-                <View style={{
-                    marginLeft: 'auto',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12
-                }}>
-                    {/* Notification icon with badge */}
-                    <View style={{ position: 'relative' }}>
-                        <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-                        <View style={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: '#E85C5C',
-                        }} />
-                    </View>
-                    
-                    {/* Settings icon */}
-                    <Ionicons name="settings-outline" size={24} color={COLORS.text} />
-                </View>
-            </View>
+            <TopBar title="Notes" />
 
             {/* Subtle divider */}
-            <View style={{
-                height: 1,
-                backgroundColor: COLORS.divider,
-                marginTop: 8,
-                marginBottom: 24
-            }} />
+            <Divider />
 
             {/* === Create New Note === */}
             <View style={{ marginBottom: 24 }}>

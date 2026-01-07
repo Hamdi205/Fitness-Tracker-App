@@ -1,23 +1,15 @@
+import { CircularProgress } from '@/components/common/CircularProgress';
+import { Divider } from '@/components/common/Divider';
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
 import { useAppStore } from '@/store/useAppStore';
+import { calculatePercentage, formatCalories, getDayName } from '@/utils/calculations';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * DashboardScreen
@@ -27,80 +19,6 @@ const COLORS = {
  * Its like view in MVC
  */
 
-// Circular Progress Component
-function CircularProgress({
-    percentage,
-    size = 80,
-    strokeWidth = 8,
-    color = '#4A90E2',
-    label,
-    value,
-    subtitle
-}: {
-    percentage: number;
-    size?: number;
-    strokeWidth?: number;
-    color?: string;
-    label: string;
-    value: string;
-    subtitle?: string;
-}) {
-    return (
-        <View style={{ alignItems: 'center', marginHorizontal: 8 }}>
-            <View style={{ position: 'relative', width: size, height: size }}>
-                {/* Background circle */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderColor: '#2A2A2E',
-                    }}
-                />
-                {/* Progress circle - simplified version using border segments */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderTopColor: percentage > 0 ? color : 'transparent',
-                        borderRightColor: percentage > 25 ? color : 'transparent',
-                        borderBottomColor: percentage > 50 ? color : 'transparent',
-                        borderLeftColor: percentage > 75 ? color : 'transparent',
-                        transform: [{ rotate: '-90deg' }],
-                    }}
-                />
-                {/* Center content */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600' }}>
-                        {value}
-                    </Text>
-                    {subtitle && (
-                        <Text style={{ color: COLORS.textDime, fontSize: 10, marginTop: 2 }}>
-                            {subtitle}
-                        </Text>
-                    )}
-                </View>
-            </View>
-            <Text style={{ color: COLORS.text, fontSize: 12, fontWeight: '500', marginTop: 8 }}>
-                {label}
-            </Text>
-        </View>
-    );
-}
-
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
     const { todayTarget } = useDailyTargets();
@@ -109,20 +27,17 @@ export default function DashboardScreen() {
         loadData();
     }, [loadData]);
 
-    // Calculate percentages
+    // Calculate percentages using utility function
     const waterPercentage = useMemo(() => {
-        if (todayTarget.water.target === 0) return 0;
-        return Math.min((todayTarget.water.current / todayTarget.water.target) * 100, 100);
+        return calculatePercentage(todayTarget.water.current, todayTarget.water.target);
     }, [todayTarget.water]);
 
     const caloriesPercentage = useMemo(() => {
-        if (todayTarget.calories.target === 0) return 0;
-        return Math.min((todayTarget.calories.current / todayTarget.calories.target) * 100, 100);
+        return calculatePercentage(todayTarget.calories.current, todayTarget.calories.target);
     }, [todayTarget.calories]);
 
     const tasksPercentage = useMemo(() => {
-        if (todayTarget.tasks.total === 0) return 0;
-        return Math.min((todayTarget.tasks.completed / todayTarget.tasks.total) * 100, 100);
+        return calculatePercentage(todayTarget.tasks.completed, todayTarget.tasks.total);
     }, [todayTarget.tasks]);
 
     // Get quick notes (filter by category or get first 3)
@@ -142,18 +57,17 @@ export default function DashboardScreen() {
 
     // Calculate workout progress percentage
     const workoutProgress = useMemo(() => {
-        if (workouts.length === 0) return 0;
-        return (completedWorkoutsCount / workouts.length) * 100;
+        return calculatePercentage(completedWorkoutsCount, workouts.length);
     }, [workouts.length, completedWorkoutsCount]);
 
-    // Get current day name
+    // Get current day name using utility function
     const dayName = useMemo(() => {
-        return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        return getDayName();
     }, []);
 
-    // Format calories target with commas
+    // Format calories target with utility function
     const formattedCaloriesTarget = useMemo(() => {
-        return todayTarget.calories.target.toLocaleString('en-US');
+        return formatCalories(todayTarget.calories.target);
     }, [todayTarget.calories.target]);
 
     return (
@@ -165,82 +79,10 @@ export default function DashboardScreen() {
                 >
 
                     {/* === Top Bar === */}
-                    <View
-                        style={{
-                            height: 64,
-                            marginTop: 4,
-                            backgroundColor: COLORS.topBar,
-                            borderRadius: 12,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: 14,
-                            position: 'relative',
-
-                        }}>
-                        {/* space for profil pic */}
-                        <Pressable
-                            onPress={() => router.push('/profile')}
-                            hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
-                            style={{width: 64, height: 64, justifyContent: 'center', alignItems: 'center'}}
-                        >
-                            <View style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: 22,
-                                backgroundColor: '#4A90E2',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
-                                <Ionicons name="person" size={24} color={COLORS.text}/>
-                            </View>
-                        </Pressable>
-
-                        {/* Centered Page title */}
-                        <Text style={{
-                            position: 'absolute',
-                            left: 0,
-                            right: 0,
-                            textAlign: 'center',
-                            fontSize: 18,
-                            fontWeight: '700',
-                            color: COLORS.text
-                        }}>
-                            Dashboard
-                        </Text>
-
-                        {/* Right side icons */}
-                        <View style={{
-                            marginLeft: 'auto',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 12
-                        }}>
-                            {/* Notification icon with badge */}
-                            <View style={{position: 'relative'}}>
-                                <Ionicons name="notifications-outline" size={24} color={COLORS.text}/>
-                                <View style={{
-                                    position: 'absolute',
-                                    top: -2,
-                                    right: -2,
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#E85C5C',
-                                }}/>
-                            </View>
-
-                            {/* Settings icon */}
-                            <Ionicons name="settings-outline" size={24} color={COLORS.text}/>
-                        </View>
-                    </View>
+                    <TopBar title="Dashboard" />
 
                     {/* Subtle divider */}
-                    <View style={{
-                        height: 1,
-                        backgroundColor: COLORS.divider,
-                        marginTop: 8,
-                        marginBottom: 24
-                    }}/>
+                    <Divider />
 
                     {/* === Quick Notes Section === */}
                     <View style={{marginBottom: 24}}>
@@ -335,7 +177,7 @@ export default function DashboardScreen() {
                             <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', marginRight: 8 }}>
                                 {completedWorkoutsCount} Workout{completedWorkoutsCount !== 1 ? 's' : ''} Completed
                             </Text>
-                            <Ionicons name="barbell-outline" size={20} color="#E85C5C" />
+                            <Ionicons name="barbell-outline" size={20} color={COLORS.accent} />
                         </View>
 
                         {/* Progress Bar */}
@@ -348,7 +190,7 @@ export default function DashboardScreen() {
                             <View style={{
                                 height: '100%',
                                 width: `${Math.min(workoutProgress, 100)}%`,
-                                backgroundColor: '#4A90E2',
+                                backgroundColor: COLORS.accentBlue,
                                 borderRadius: 4,
                             }} />
                         </View>
@@ -372,7 +214,7 @@ export default function DashboardScreen() {
                                     percentage={waterPercentage}
                                     size={80}
                                     strokeWidth={8}
-                                    color="#4A90E2"
+                                    color={COLORS.accentBlue}
                                     label="Water"
                                     value={`${Math.round(waterPercentage)}%`}
                                     subtitle={`${todayTarget.water.current}/${todayTarget.water.target}`}
@@ -383,10 +225,10 @@ export default function DashboardScreen() {
                                     percentage={caloriesPercentage}
                                     size={80}
                                     strokeWidth={8}
-                                    color="#E85C5C"
+                                    color={COLORS.accent}
                                     label="Calories"
-                                    value={todayTarget.calories.current.toLocaleString('en-US')}
-                                    subtitle={`/${todayTarget.calories.target.toLocaleString('en-US')}`}
+                                    value={formatCalories(todayTarget.calories.current)}
+                                    subtitle={`/${formatCalories(todayTarget.calories.target)}`}
                                 />
                             </Pressable>
                             <Pressable onPress={() => router.push('/update-target-modal?type=tasks')}>
@@ -394,7 +236,7 @@ export default function DashboardScreen() {
                                     percentage={tasksPercentage}
                                     size={80}
                                     strokeWidth={8}
-                                    color="#4A90E2"
+                                    color={COLORS.accentBlue}
                                     label="Tasks"
                                     value={`${todayTarget.tasks.completed}/${todayTarget.tasks.total}`}
                                     subtitle={todayTarget.tasks.total > 0 ? "Done" : "No tasks"}

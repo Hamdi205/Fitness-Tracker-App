@@ -1,24 +1,12 @@
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
+import { validateNoteTitle } from '@/utils/validation';
 import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517',
-    divider: '#212124',
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777',
-    button: '#4A90E2',
-    buttonText: '#FFFFFF',
-};
 
 const CATEGORIES = [
     'Fitness',
@@ -37,8 +25,9 @@ export default function AddNoteModal() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSave = async () => {
-        if (!title.trim()) {
-            Alert.alert('Error', 'Please enter a title for your note');
+        const validation = validateNoteTitle(title);
+        if (!validation.valid) {
+            Alert.alert('Error', validation.error || 'Please enter a title for your note');
             return;
         }
 
@@ -61,40 +50,14 @@ export default function AddNoteModal() {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
             {/* Header */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    marginHorizontal: 16,
-                    marginBottom: 16,
-                }}
-            >
-                <Pressable
-                    onPress={() => router.back()}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    style={{ width: 44, height: 44, justifyContent: 'center', alignItems: 'center' }}
-                >
-                    <Ionicons name="close" size={24} color={COLORS.text} />
-                </Pressable>
-
-                <Text
-                    style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text,
-                    }}
-                >
-                    New Note
-                </Text>
-
-                <View style={{ width: 44 }} />
+            <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
+                <TopBar 
+                    title="New Note" 
+                    showProfile={false}
+                    showNotifications={false}
+                    showSettings={false}
+                    onBackPress={() => router.back()}
+                />
             </View>
 
             <ScrollView
@@ -159,10 +122,10 @@ export default function AddNoteModal() {
                                 style={{
                                     paddingVertical: 8,
                                     paddingHorizontal: 16,
-                                    backgroundColor: category === cat ? COLORS.button : COLORS.chip,
+                                    backgroundColor: category === cat ? COLORS.accentBlue : COLORS.chip,
                                     borderRadius: 20,
                                     borderWidth: 1,
-                                    borderColor: category === cat ? COLORS.button : COLORS.chipBorder,
+                                    borderColor: category === cat ? COLORS.accentBlue : COLORS.chipBorder,
                                 }}
                             >
                                 <Text
@@ -184,7 +147,7 @@ export default function AddNoteModal() {
                     onPress={handleSave}
                     disabled={isLoading}
                     style={{
-                        backgroundColor: COLORS.button,
+                        backgroundColor: COLORS.accentBlue,
                         borderRadius: 12,
                         padding: 16,
                         alignItems: 'center',

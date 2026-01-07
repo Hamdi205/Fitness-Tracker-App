@@ -1,20 +1,10 @@
+import { Divider } from '@/components/common/Divider';
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * ProfileScreen
@@ -34,58 +24,15 @@ export default function ProfileScreen() {
             >
 
             {/* === Top Bar === */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    position: 'relative',
-                    
-                }}>
-                {/* Back button */}
-                <Pressable 
-                    onPress={() => router.back()}
-                    style={{ width: 56, justifyContent: 'center' }}
-                >
-                    <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-                </Pressable>
-
-                {/* Centered Page title */}
-                    <Text style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text
-                    }}>
-                        Profile
-                    </Text>
-
-                {/* Right side icons */}
-                <View style={{
-                    marginLeft: 'auto',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12
-                }}>
-                    {/* Settings icon */}
-                    <Ionicons name="settings-outline" size={24} color={COLORS.text} />
-                </View>
-            </View>
+            <TopBar 
+                title="Profile" 
+                showProfile={false}
+                showNotifications={false}
+                onBackPress={() => router.back()}
+            />
 
             {/* Subtle divider */}
-            <View style={{
-                height: 1,
-                backgroundColor: COLORS.divider,
-                marginTop: 8,
-                marginBottom: 24
-            }} />
+            <Divider />
 
             {/* === Profile Header === */}
             <View style={{ alignItems: 'center', marginBottom: 32 }}>
@@ -93,7 +40,7 @@ export default function ProfileScreen() {
                     width: 100,
                     height: 100,
                     borderRadius: 50,
-                    backgroundColor: '#4A90E2',
+                    backgroundColor: COLORS.accentBlue,
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginBottom: 16,
@@ -166,8 +113,8 @@ export default function ProfileScreen() {
                         marginBottom: 12,
                     }}
                 >
-                    <Ionicons name="log-out-outline" size={20} color="#E85C5C" style={{ marginRight: 8 }} />
-                    <Text style={{ color: '#E85C5C', fontSize: 16, fontWeight: '600' }}>
+                    <Ionicons name="log-out-outline" size={20} color={COLORS.accent} style={{ marginRight: 8 }} />
+                    <Text style={{ color: COLORS.accent, fontSize: 16, fontWeight: '600' }}>
                         Sign Out
                     </Text>
                 </Pressable>

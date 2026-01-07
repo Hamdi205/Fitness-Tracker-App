@@ -1,22 +1,14 @@
+import { CircularProgress } from '@/components/common/CircularProgress';
+import { Divider } from '@/components/common/Divider';
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
+import { calculatePercentage } from '@/utils/calculations';
 import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * GoalsScreen
@@ -25,80 +17,6 @@ const COLORS = {
  *
  * Its like view in MVC
  */
-
-// Circular Progress Component
-function CircularProgress({ 
-    percentage, 
-    size = 80, 
-    strokeWidth = 8, 
-    color = '#4A90E2',
-    label,
-    value,
-    subtitle 
-}: {
-    percentage: number;
-    size?: number;
-    strokeWidth?: number;
-    color?: string;
-    label: string;
-    value: string;
-    subtitle?: string;
-}) {
-    return (
-        <View style={{ alignItems: 'center', marginHorizontal: 8 }}>
-            <View style={{ position: 'relative', width: size, height: size }}>
-                {/* Background circle */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderColor: '#2A2A2E',
-                    }}
-                />
-                {/* Progress circle - simplified version using border segments */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderTopColor: percentage > 0 ? color : 'transparent',
-                        borderRightColor: percentage > 25 ? color : 'transparent',
-                        borderBottomColor: percentage > 50 ? color : 'transparent',
-                        borderLeftColor: percentage > 75 ? color : 'transparent',
-                        transform: [{ rotate: '-90deg' }],
-                    }}
-                />
-                {/* Center content */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600' }}>
-                        {value}
-                    </Text>
-                    {subtitle && (
-                        <Text style={{ color: COLORS.textDime, fontSize: 10, marginTop: 2 }}>
-                            {subtitle}
-                        </Text>
-                    )}
-                </View>
-            </View>
-            <Text style={{ color: COLORS.text, fontSize: 12, fontWeight: '500', marginTop: 8 }}>
-                {label}
-            </Text>
-        </View>
-    );
-}
 
 // Category configuration
 const GOAL_CATEGORIES = [
@@ -186,82 +104,10 @@ export default function GoalsScreen() {
             >
 
             {/* === Top Bar === */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    position: 'relative',
-                    
-                }}>
-                {/* space for profil pic */}
-                <Pressable 
-                    onPress={() => router.push('/profile')}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}
-                >
-                    <View style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor: '#4A90E2',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}>
-                        <Ionicons name="person" size={24} color={COLORS.text} />
-                    </View>
-                </Pressable>
-
-                {/* Centered Page title */}
-                    <Text style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text
-                    }}>
-                        Goals
-                    </Text>
-
-                {/* Right side icons */}
-                <View style={{
-                    marginLeft: 'auto',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12
-                }}>
-                    {/* Notification icon with badge */}
-                    <View style={{ position: 'relative' }}>
-                        <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-                        <View style={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: '#E85C5C',
-                        }} />
-                    </View>
-                    
-                    {/* Settings icon */}
-                    <Ionicons name="settings-outline" size={24} color={COLORS.text} />
-                </View>
-            </View>
+            <TopBar title="Goals" />
 
             {/* Subtle divider */}
-            <View style={{
-                height: 1,
-                backgroundColor: COLORS.divider,
-                marginTop: 8,
-                marginBottom: 24
-            }} />
+            <Divider />
 
             {/* === Active Goals Overview === */}
             <View style={{ marginBottom: 24 }}>
@@ -279,7 +125,7 @@ export default function GoalsScreen() {
                     {GOAL_CATEGORIES.slice(0, 3).map((cat) => {
                         const activeCount = activeGoalsByCategory[cat.category] || 0;
                         const totalCount = goalsByCategory[cat.category]?.total || 0;
-                        const percentage = totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0;
+                        const percentage = Math.round(calculatePercentage(activeCount, totalCount));
                         
                         return (
                             <CircularProgress
@@ -393,7 +239,7 @@ export default function GoalsScreen() {
                                 }}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                                    <Ionicons name="trophy" size={20} color="#E85C5C" style={{ marginRight: 12 }} />
+                                    <Ionicons name="trophy" size={20} color={COLORS.accent} style={{ marginRight: 12 }} />
                                     <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', flex: 1 }}>
                                         {goal.title}
                                     </Text>
