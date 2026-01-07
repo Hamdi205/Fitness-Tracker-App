@@ -1,6 +1,7 @@
 import { CircularProgress } from '@/components/common/CircularProgress';
 import { Divider } from '@/components/common/Divider';
 import { TopBar } from '@/components/common/TopBar';
+import { WaterTracker } from '@/components/common/WaterTracker';
 import { COLORS } from '@/constants/colors';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
 import { useAppStore } from '@/store/useAppStore';
@@ -21,17 +22,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
-    const { todayTarget } = useDailyTargets();
+    const { todayTarget, addWaterGlass } = useDailyTargets();
 
     useEffect(() => {
         loadData();
     }, [loadData]);
 
     // Calculate percentages using utility function
-    const waterPercentage = useMemo(() => {
-        return calculatePercentage(todayTarget.water.current, todayTarget.water.target);
-    }, [todayTarget.water]);
-
     const caloriesPercentage = useMemo(() => {
         return calculatePercentage(todayTarget.calories.current, todayTarget.calories.target);
     }, [todayTarget.calories]);
@@ -207,19 +204,17 @@ export default function DashboardScreen() {
                             {dayName} Targets
                         </Text>
 
-                        {/* Circular Progress Indicators */}
+                        {/* Water Tracker */}
+                        <View style={{ marginBottom: 24 }}>
+                            <WaterTracker
+                                current={todayTarget.water.current}
+                                target={todayTarget.water.target}
+                                onAddGlass={addWaterGlass}
+                            />
+                        </View>
+
+                        {/* Other Targets - Calories and Tasks */}
                         <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
-                            <Pressable onPress={() => router.push('/update-target-modal?type=water')}>
-                                <CircularProgress
-                                    percentage={waterPercentage}
-                                    size={80}
-                                    strokeWidth={8}
-                                    color={COLORS.accentBlue}
-                                    label="Water"
-                                    value={`${Math.round(waterPercentage)}%`}
-                                    subtitle={`${todayTarget.water.current}/${todayTarget.water.target}`}
-                                />
-                            </Pressable>
                             <Pressable onPress={() => router.push('/update-target-modal?type=calories')}>
                                 <CircularProgress
                                     percentage={caloriesPercentage}

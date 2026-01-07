@@ -140,7 +140,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     updateDailyTarget: async (date, updates) => {
         const current = get().dailyTargets[date] || {
             date,
-            water: { current: 0, target: 8 },
+            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
             tasks: { completed: 0, total: 0 },
         };
@@ -155,7 +155,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const today = new Date().toISOString().split('T')[0];
         return get().dailyTargets[today] || {
             date: today,
-            water: { current: 0, target: 8 },
+            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
             tasks: { completed: 0, total: 0 },
         };

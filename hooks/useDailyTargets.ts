@@ -9,7 +9,7 @@ export function useDailyTargets() {
     const todayTarget = useMemo(() => {
         return dailyTargets[today] || {
             date: today,
-            water: { current: 0, target: 8 },
+            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
             tasks: { completed: 0, total: 0 },
         };
@@ -18,12 +18,25 @@ export function useDailyTargets() {
     const updateWater = async (value: number) => {
         const current = dailyTargets[today] || {
             date: today,
-            water: { current: 0, target: 8 },
+            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
             tasks: { completed: 0, total: 0 },
         };
         await updateDailyTarget(today, {
             water: { ...current.water, current: value },
+        });
+    };
+    
+    const addWaterGlass = async () => {
+        const current = dailyTargets[today] || {
+            date: today,
+            water: { current: 0, target: 2.0 },
+            calories: { current: 0, target: 2500 },
+            tasks: { completed: 0, total: 0 },
+        };
+        const newValue = current.water.current + 0.25; // Add 0.25L per glass
+        await updateDailyTarget(today, {
+            water: { ...current.water, current: newValue },
         });
     };
 
@@ -50,5 +63,6 @@ export function useDailyTargets() {
         updateWater,
         updateCalories,
         updateTasks,
+        addWaterGlass,
     };
 }
