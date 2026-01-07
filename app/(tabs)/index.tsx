@@ -254,14 +254,17 @@ export default function DashboardScreen() {
                         </Text>
 
                         {/* New Quick Notes*/}
-                        <Pressable style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            padding: 14,
-                            borderRadius: 12,
-                            backgroundColor: COLORS.cardSecondary,
-                            marginBottom: 12
-                        }}>
+                        <Pressable 
+                            onPress={() => router.push('/add-note-modal')}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: 14,
+                                borderRadius: 12,
+                                backgroundColor: COLORS.cardSecondary,
+                                marginBottom: 12
+                            }}
+                        >
                             <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime}
                                       style={{marginRight: 8}}/>
                             <Text style={{color: COLORS.textDime, fontSize: 16}}>
@@ -364,33 +367,39 @@ export default function DashboardScreen() {
 
                         {/* Circular Progress Indicators */}
                         <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
-                            <CircularProgress
-                                percentage={waterPercentage}
-                                size={80}
-                                strokeWidth={8}
-                                color="#4A90E2"
-                                label="Water"
-                                value={`${Math.round(waterPercentage)}%`}
-                                subtitle={`${todayTarget.water.current}/${todayTarget.water.target}`}
-                            />
-                            <CircularProgress
-                                percentage={caloriesPercentage}
-                                size={80}
-                                strokeWidth={8}
-                                color="#E85C5C"
-                                label="Calories"
-                                value={todayTarget.calories.current.toLocaleString('en-US')}
-                                subtitle={`/${todayTarget.calories.target.toLocaleString('en-US')}`}
-                            />
-                            <CircularProgress
-                                percentage={tasksPercentage}
-                                size={80}
-                                strokeWidth={8}
-                                color="#4A90E2"
-                                label="Tasks"
-                                value={`${todayTarget.tasks.completed}/${todayTarget.tasks.total}`}
-                                subtitle={todayTarget.tasks.total > 0 ? "Done" : "No tasks"}
-                            />
+                            <Pressable onPress={() => router.push('/update-target-modal?type=water')}>
+                                <CircularProgress
+                                    percentage={waterPercentage}
+                                    size={80}
+                                    strokeWidth={8}
+                                    color="#4A90E2"
+                                    label="Water"
+                                    value={`${Math.round(waterPercentage)}%`}
+                                    subtitle={`${todayTarget.water.current}/${todayTarget.water.target}`}
+                                />
+                            </Pressable>
+                            <Pressable onPress={() => router.push('/update-target-modal?type=calories')}>
+                                <CircularProgress
+                                    percentage={caloriesPercentage}
+                                    size={80}
+                                    strokeWidth={8}
+                                    color="#E85C5C"
+                                    label="Calories"
+                                    value={todayTarget.calories.current.toLocaleString('en-US')}
+                                    subtitle={`/${todayTarget.calories.target.toLocaleString('en-US')}`}
+                                />
+                            </Pressable>
+                            <Pressable onPress={() => router.push('/update-target-modal?type=tasks')}>
+                                <CircularProgress
+                                    percentage={tasksPercentage}
+                                    size={80}
+                                    strokeWidth={8}
+                                    color="#4A90E2"
+                                    label="Tasks"
+                                    value={`${todayTarget.tasks.completed}/${todayTarget.tasks.total}`}
+                                    subtitle={todayTarget.tasks.total > 0 ? "Done" : "No tasks"}
+                                />
+                            </Pressable>
                         </View>
 
                         {/* Calories Target */}
@@ -402,6 +411,7 @@ export default function DashboardScreen() {
 
                         {/* New Task Button */}
                         <Pressable
+                            onPress={() => router.push('/add-task-modal')}
                             style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
