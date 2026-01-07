@@ -1,7 +1,9 @@
+import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 
 const COLORS = {
     bg: '#0E0E10',
@@ -24,7 +26,86 @@ const COLORS = {
  * Its like view in MVC
  */
 
+// Category configuration
+const CATEGORIES = [
+    { name: 'Fitness', icon: 'barbell-outline' as const },
+    { name: 'Meal Plans', icon: 'restaurant-outline' as const },
+    { name: 'Ideas', icon: 'bulb-outline' as const },
+    { name: 'Shopping', icon: 'cart-outline' as const },
+    { name: 'Research', icon: 'search-outline' as const },
+    { name: 'Other', icon: 'folder-outline' as const },
+];
+
 export default function NotesScreen() {
+    const { loadData, notes } = useAppStore();
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    // Get quick notes (first 3 notes)
+    const quickNotes = useMemo(() => {
+        return notes.slice(0, 3);
+    }, [notes]);
+
+    // Get all notes sorted by updatedAt (most recent first)
+    const allNotes = useMemo(() => {
+        return [...notes].sort((a, b) => {
+            const dateA = new Date(a.updatedAt).getTime();
+            const dateB = new Date(b.updatedAt).getTime();
+            return dateB - dateA;
+        });
+    }, [notes]);
+
+    // Get recent notes (last 5 notes by updatedAt)
+    const recentNotes = useMemo(() => {
+        return [...notes]
+            .sort((a, b) => {
+                const dateA = new Date(a.updatedAt).getTime();
+                const dateB = new Date(b.updatedAt).getTime();
+                return dateB - dateA;
+            })
+            .slice(0, 5);
+    }, [notes]);
+
+    // Calculate notes count per category
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        CATEGORIES.forEach(cat => {
+            counts[cat.name] = 0;
+        });
+        notes.forEach(note => {
+            if (counts[note.category] !== undefined) {
+                counts[note.category]++;
+            } else {
+                // If category doesn't match any predefined, count as "Other"
+                counts['Other'] = (counts['Other'] || 0) + 1;
+            }
+        });
+        return counts;
+    }, [notes]);
+
+    // Calculate statistics
+    const statistics = useMemo(() => {
+        const totalNotes = notes.length;
+        
+        // Calculate notes created this week
+        const now = new Date();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const notesThisWeek = notes.filter(note => {
+            const noteDate = new Date(note.createdAt);
+            return noteDate >= startOfWeek;
+        }).length;
+
+        return {
+            total: totalNotes,
+            thisWeek: notesThisWeek,
+        };
+    }, [notes]);
+
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: COLORS.bg}}>
             <ScrollView 
@@ -113,14 +194,17 @@ export default function NotesScreen() {
 
             {/* === Create New Note === */}
             <View style={{ marginBottom: 24 }}>
-                <Pressable style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 14,
-                    borderRadius: 12,
-                    backgroundColor: COLORS.cardSecondary,
-                    marginBottom: 12
-                }}>
+                <Pressable 
+                    onPress={() => router.push('/add-note-modal')}
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 14,
+                        borderRadius: 12,
+                        backgroundColor: COLORS.cardSecondary,
+                        marginBottom: 12
+                    }}
+                >
                     <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime} style={{ marginRight: 8 }} />
                     <Text style={{ color: COLORS.textDime, fontSize: 16 }}>
                         + New note ...
@@ -139,27 +223,37 @@ export default function NotesScreen() {
                     Quick Notes
                 </Text>
 
-                <View>
-                    {['Example: Weekly meal plan', 'Example: Stretching routine research', 'Example: Order new resistance bands'].map((note, index) => (
-                        <Pressable
-                            key={index}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                paddingVertical: 12,
-                                paddingHorizontal: 8,
-                                opacity: 0.6,
-                                marginBottom: 8,
-                            }}
-                        >
-                            <Ionicons name="document-text-outline" size={18} color={COLORS.textDime} style={{ marginRight: 12 }} />
-                            <Text style={{ color: COLORS.text, fontSize: 14, fontStyle: 'italic', flex: 1 }}>
-                                {note}
-                            </Text>
-                            <Ionicons name="chevron-forward-outline" size={16} color={COLORS.textDime} />
-                        </Pressable>
-                    ))}
-                </View>
+                {quickNotes.length > 0 ? (
+                    <View>
+                        {quickNotes.map((note) => (
+                            <View
+                                key={note.id}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 8,
+                                }}
+                            >
+                                <Ionicons name="document-text-outline" size={18} color={COLORS.textDime}
+                                          style={{ marginRight: 12 }} />
+                                <Text style={{ color: COLORS.text, fontSize: 14 }}>
+                                    {note.title}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    <View style={{
+                        paddingVertical: 12,
+                        paddingHorizontal: 8,
+                        opacity: 0.6,
+                    }}>
+                        <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic' }}>
+                            No quick notes yet
+                        </Text>
+                    </View>
+                )}
             </View>
 
             {/* === All Notes Section === */}
@@ -173,18 +267,55 @@ export default function NotesScreen() {
                     All Notes
                 </Text>
 
-                <View style={{
-                    padding: 20,
-                    backgroundColor: COLORS.card,
-                    borderRadius: 12,
-                    alignItems: 'center',
-                    opacity: 0.6,
-                }}>
-                    <Ionicons name="document-text-outline" size={48} color={COLORS.textDime} style={{ marginBottom: 12 }} />
-                    <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
-                        No notes yet. Create your first note to get started!
-                    </Text>
-                </View>
+                {allNotes.length > 0 ? (
+                    <View>
+                        {allNotes.map((note) => (
+                            <View
+                                key={note.id}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    padding: 14,
+                                    backgroundColor: COLORS.card,
+                                    borderRadius: 12,
+                                    marginBottom: 8,
+                                }}
+                            >
+                                <Ionicons name="document-text-outline" size={18} color={COLORS.textDime}
+                                          style={{ marginRight: 12 }} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '500', marginBottom: 4 }}>
+                                        {note.title}
+                                    </Text>
+                                    {note.content && (
+                                        <Text 
+                                            style={{ color: COLORS.textSecondary, fontSize: 12 }}
+                                            numberOfLines={2}
+                                        >
+                                            {note.content}
+                                        </Text>
+                                    )}
+                                    <Text style={{ color: COLORS.textDime, fontSize: 10, marginTop: 4 }}>
+                                        {note.category} • {new Date(note.updatedAt).toLocaleDateString()}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    <View style={{
+                        padding: 20,
+                        backgroundColor: COLORS.card,
+                        borderRadius: 12,
+                        alignItems: 'center',
+                        opacity: 0.6,
+                    }}>
+                        <Ionicons name="document-text-outline" size={48} color={COLORS.textDime} style={{ marginBottom: 12 }} />
+                        <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
+                            No notes yet. Create your first note to get started!
+                        </Text>
+                    </View>
+                )}
             </View>
 
             {/* === Note Categories === */}
@@ -199,37 +330,33 @@ export default function NotesScreen() {
                 </Text>
 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                    {[
-                        { name: 'Fitness', icon: 'barbell-outline', count: 0 },
-                        { name: 'Meal Plans', icon: 'restaurant-outline', count: 0 },
-                        { name: 'Ideas', icon: 'bulb-outline', count: 0 },
-                        { name: 'Shopping', icon: 'cart-outline', count: 0 },
-                        { name: 'Research', icon: 'search-outline', count: 0 },
-                        { name: 'Other', icon: 'folder-outline', count: 0 },
-                    ].map((category, index) => (
-                        <Pressable
-                            key={index}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                paddingVertical: 10,
-                                paddingHorizontal: 16,
-                                backgroundColor: COLORS.chip,
-                                borderRadius: 20,
-                                borderWidth: 1,
-                                borderColor: COLORS.chipBorder,
-                                opacity: 0.6,
-                            }}
-                        >
-                            <Ionicons name={category.icon as any} size={16} color={COLORS.textDime} style={{ marginRight: 8 }} />
-                            <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500', marginRight: 8 }}>
-                                {category.name}
-                            </Text>
-                            <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
-                                ({category.count})
-                            </Text>
-                        </Pressable>
-                    ))}
+                    {CATEGORIES.map((category, index) => {
+                        const count = categoryCounts[category.name] || 0;
+                        return (
+                            <Pressable
+                                key={index}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingVertical: 10,
+                                    paddingHorizontal: 16,
+                                    backgroundColor: COLORS.chip,
+                                    borderRadius: 20,
+                                    borderWidth: 1,
+                                    borderColor: COLORS.chipBorder,
+                                    opacity: count > 0 ? 1 : 0.6,
+                                }}
+                            >
+                                <Ionicons name={category.icon} size={16} color={COLORS.textDime} style={{ marginRight: 8 }} />
+                                <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500', marginRight: 8 }}>
+                                    {category.name}
+                                </Text>
+                                <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
+                                    ({count})
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
                 </View>
             </View>
 
@@ -244,16 +371,45 @@ export default function NotesScreen() {
                     Recent Notes
                 </Text>
 
-                <View style={{
-                    padding: 16,
-                    backgroundColor: COLORS.card,
-                    borderRadius: 12,
-                    opacity: 0.6,
-                }}>
-                    <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
-                        No recent notes
-                    </Text>
-                </View>
+                {recentNotes.length > 0 ? (
+                    <View>
+                        {recentNotes.map((note) => (
+                            <View
+                                key={note.id}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    padding: 14,
+                                    backgroundColor: COLORS.card,
+                                    borderRadius: 12,
+                                    marginBottom: 8,
+                                }}
+                            >
+                                <Ionicons name="document-text-outline" size={18} color={COLORS.textDime}
+                                          style={{ marginRight: 12 }} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500' }}>
+                                        {note.title}
+                                    </Text>
+                                    <Text style={{ color: COLORS.textDime, fontSize: 11, marginTop: 4 }}>
+                                        {new Date(note.updatedAt).toLocaleDateString()}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    <View style={{
+                        padding: 16,
+                        backgroundColor: COLORS.card,
+                        borderRadius: 12,
+                        opacity: 0.6,
+                    }}>
+                        <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
+                            No recent notes
+                        </Text>
+                    </View>
+                )}
             </View>
 
             {/* === Statistics === */}
@@ -283,7 +439,7 @@ export default function NotesScreen() {
                             Total Notes
                         </Text>
                         <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '700' }}>
-                            0
+                            {statistics.total}
                         </Text>
                     </View>
 
@@ -299,7 +455,7 @@ export default function NotesScreen() {
                             This Week
                         </Text>
                         <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '700' }}>
-                            0
+                            {statistics.thisWeek}
                         </Text>
                     </View>
                 </View>
@@ -309,4 +465,3 @@ export default function NotesScreen() {
         </SafeAreaView>
     );
 }
-
