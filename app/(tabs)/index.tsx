@@ -1,5 +1,6 @@
 import { CircularProgress } from '@/components/common/CircularProgress';
 import { Divider } from '@/components/common/Divider';
+import { TaskTracker } from '@/components/common/TaskTracker';
 import { TopBar } from '@/components/common/TopBar';
 import { WaterTracker } from '@/components/common/WaterTracker';
 import { COLORS } from '@/constants/colors';
@@ -22,7 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
-    const { todayTarget, addWaterGlass } = useDailyTargets();
+    const { todayTarget, addWaterGlass, updateTasks } = useDailyTargets();
 
     useEffect(() => {
         loadData();
@@ -32,10 +33,6 @@ export default function DashboardScreen() {
     const caloriesPercentage = useMemo(() => {
         return calculatePercentage(todayTarget.calories.current, todayTarget.calories.target);
     }, [todayTarget.calories]);
-
-    const tasksPercentage = useMemo(() => {
-        return calculatePercentage(todayTarget.tasks.completed, todayTarget.tasks.total);
-    }, [todayTarget.tasks]);
 
     // Get quick notes (filter by category or get first 3)
     const quickNotes = useMemo(() => {
@@ -213,8 +210,34 @@ export default function DashboardScreen() {
                             />
                         </View>
 
-                        {/* Other Targets - Calories and Tasks */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
+                        {/* Tasks Tracker */}
+                        {todayTarget.tasks.total > 0 ? (
+                            <View style={{ marginBottom: 24 }}>
+                                <TaskTracker
+                                    completed={todayTarget.tasks.completed}
+                                    total={todayTarget.tasks.total}
+                                    onIncrement={async () => {
+                                        if (todayTarget.tasks.completed < todayTarget.tasks.total) {
+                                            await updateTasks(todayTarget.tasks.completed + 1, todayTarget.tasks.total);
+                                        }
+                                    }}
+                                    onDecrement={async () => {
+                                        if (todayTarget.tasks.completed > 0) {
+                                            await updateTasks(todayTarget.tasks.completed - 1, todayTarget.tasks.total);
+                                        }
+                                    }}
+                                />
+                            </View>
+                        ) : (
+                            <View style={{ marginBottom: 24, alignItems: 'center' }}>
+                                <Text style={{ color: COLORS.textDime, fontSize: 14, marginBottom: 16 }}>
+                                    No tasks yet. Add your first task to get started!
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Calories Target */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
                             <Pressable onPress={() => router.push('/update-target-modal?type=calories')}>
                                 <CircularProgress
                                     percentage={caloriesPercentage}
@@ -226,20 +249,9 @@ export default function DashboardScreen() {
                                     subtitle={`/${formatCalories(todayTarget.calories.target)}`}
                                 />
                             </Pressable>
-                            <Pressable onPress={() => router.push('/update-target-modal?type=tasks')}>
-                                <CircularProgress
-                                    percentage={tasksPercentage}
-                                    size={80}
-                                    strokeWidth={8}
-                                    color={COLORS.accentBlue}
-                                    label="Tasks"
-                                    value={`${todayTarget.tasks.completed}/${todayTarget.tasks.total}`}
-                                    subtitle={todayTarget.tasks.total > 0 ? "Done" : "No tasks"}
-                                />
-                            </Pressable>
                         </View>
 
-                        {/* Calories Target */}
+                        {/* Calories Target Info */}
                         <View style={{ alignItems: 'center', marginBottom: 16 }}>
                             <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
                                 {formattedCaloriesTarget} kcal
@@ -253,15 +265,18 @@ export default function DashboardScreen() {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                padding: 12,
+                                padding: 14,
                                 backgroundColor: COLORS.card,
                                 borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: COLORS.chipBorder,
+                                borderStyle: 'dashed',
                             }}
                         >
-                            <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime}
+                            <Ionicons name="add-circle-outline" size={20} color={COLORS.accentBlue}
                                       style={{marginRight: 8}}/>
-                            <Text style={{color: COLORS.textDime, fontSize: 14}}>
-                                + New task
+                            <Text style={{color: COLORS.accentBlue, fontSize: 14, fontWeight: '600'}}>
+                                Add New Task
                             </Text>
                         </Pressable>
                     </View>

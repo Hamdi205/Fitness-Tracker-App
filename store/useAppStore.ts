@@ -29,6 +29,21 @@ interface AppState {
     completeGoal: (id: string) => Promise<void>;
 
     // Daily Targets
+    addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+    toggleTask: (taskId: string) => Promise<void>;
+    deleteTask: (taskId: string) => Promise<void>;
+    
+    // I create-funksjonen
+    addTask: async (taskData) => {
+        const today = new Date().toISOString().split('T')[0];
+        const current = get().dailyTargets[today] || {
+            date: today,
+            water: { current: 0, target: 2.0 },
+            calories: { current: 0, target 2500 },
+            tasks: [],
+        };
+}
+    
     updateDailyTarget: (date: string, target: Partial<DailyTarget>) => Promise<void>;
     getTodayTarget: () => DailyTarget;
 }

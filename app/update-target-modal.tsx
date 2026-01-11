@@ -1,3 +1,4 @@
+import { TaskTracker } from '@/components/common/TaskTracker';
 import { TopBar } from '@/components/common/TopBar';
 import { WaterTracker } from '@/components/common/WaterTracker';
 import { COLORS } from '@/constants/colors';
@@ -12,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function UpdateTargetModal() {
     const { type } = useLocalSearchParams<{ type: 'water' | 'calories' | 'tasks' }>();
-    const { todayTarget, updateWater, updateCalories, updateTasks, addWaterGlass } = useDailyTargets();
+    const { todayTarget, updateWater, updateCalories,, addWaterGlass } = useDailyTargets();
     const [value, setValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -142,7 +143,7 @@ export default function UpdateTargetModal() {
                     </View>
                 </View>
 
-                {/* Water Tracker for water type, otherwise text input */}
+                {/* Water Tracker for water, TaskTracker for tasks, otherwise text input */}
                 {type === 'water' ? (
                     <View style={{ marginBottom: 24 }}>
                         <WaterTracker
@@ -151,13 +152,29 @@ export default function UpdateTargetModal() {
                             onAddGlass={addWaterGlass}
                         />
                     </View>
+                ) : type === 'tasks' ? (
+                    <View style={{ marginBottom: 24 }}>
+                        <TaskTracker
+                            completed={todayTarget.tasks.completed}
+                            total={todayTarget.tasks.total}
+                            onIncrement={async () => {
+                                if (todayTarget.tasks.completed < todayTarget.tasks.total) {
+                                    await updateTasks(todayTarget.tasks.completed + 1, todayTarget.tasks.total);
+                                }
+                            }}
+                            onDecrement={async () => {
+                                if (todayTarget.tasks.completed > 0) {
+                                    await updateTasks(todayTarget.tasks.completed - 1, todayTarget.tasks.total);
+                                }
+                            }}
+                        />
+                    </View>
                 ) : (
                     <>
-                        {/* Value Input */}
+                        {/* Value Input for calories */}
                         <View style={{ marginBottom: 24 }}>
                             <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-                                {type === 'calories' && 'Calories'}
-                                {type === 'tasks' && 'Completed Tasks'}
+                                Calories
                             </Text>
                             <TextInput
                                 value={value}
