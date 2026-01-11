@@ -1,3 +1,9 @@
+import { TaskTracker } from '@/components/common/TaskTracker';
+import { TopBar } from '@/components/common/TopBar';
+import { WaterTracker } from '@/components/common/WaterTracker';
+import { COLORS } from '@/constants/colors';
+import { formatCalories, formatNumber } from '@/utils/calculations';
+import { validateNumber } from '@/utils/validation';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -5,24 +11,9 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517',
-    divider: '#212124',
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777',
-    button: '#4A90E2',
-    buttonText: '#FFFFFF',
-};
-
 export default function UpdateTargetModal() {
     const { type } = useLocalSearchParams<{ type: 'water' | 'calories' | 'tasks' }>();
-    const { todayTarget, updateWater, updateCalories, updateTasks } = useDailyTargets();
+    const { todayTarget, updateWater, updateCalories,, addWaterGlass } = useDailyTargets();
     const [value, setValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -68,9 +59,9 @@ export default function UpdateTargetModal() {
     const getPlaceholder = () => {
         switch (type) {
             case 'water':
-                return `Current: ${todayTarget.water.current} cups`;
+                return `Current: ${todayTarget.water.current.toFixed(2)} L`;
             case 'calories':
-                return `Current: ${todayTarget.calories.current.toLocaleString()} kcal`;
+                return `Current: ${formatCalories(todayTarget.calories.current)} kcal`;
             case 'tasks':
                 return `Completed: ${todayTarget.tasks.completed} tasks`;
             default:
@@ -79,11 +70,12 @@ export default function UpdateTargetModal() {
     };
 
     const handleSave = async () => {
-        const numValue = parseFloat(value);
-        if (isNaN(numValue) || numValue < 0) {
-            Alert.alert('Error', 'Please enter a valid number');
+        const validation = validateNumber(value);
+        if (!validation.valid) {
+            Alert.alert('Error', validation.error || 'Please enter a valid number');
             return;
         }
+        const numValue = parseFloat(value);
 
         setIsLoading(true);
         try {
@@ -115,40 +107,14 @@ export default function UpdateTargetModal() {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
             {/* Header */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    marginHorizontal: 16,
-                    marginBottom: 16,
-                }}
-            >
-                <Pressable
-                    onPress={() => router.back()}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    style={{ width: 44, height: 44, justifyContent: 'center', alignItems: 'center' }}
-                >
-                    <Ionicons name="close" size={24} color={COLORS.text} />
-                </Pressable>
-
-                <Text
-                    style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text,
-                    }}
-                >
-                    {getTitle()}
-                </Text>
-
-                <View style={{ width: 44 }} />
+            <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
+                <TopBar 
+                    title={getTitle()} 
+                    showProfile={false}
+                    showNotifications={false}
+                    showSettings={false}
+                    onBackPress={() => router.back()}
+                />
             </View>
 
             <ScrollView
@@ -169,53 +135,81 @@ export default function UpdateTargetModal() {
                             Current Progress
                         </Text>
                         <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
-                            {getCurrentValue().toLocaleString()} / {getTargetValue().toLocaleString()}
-                            {type === 'water' && ' cups'}
-                            {type === 'calories' && ' kcal'}
-                            {type === 'tasks' && ' tasks'}
+                            {type === 'water' 
+                                ? `${getCurrentValue().toFixed(2)} / ${getTargetValue().toFixed(1)} L`
+                                : `${formatNumber(getCurrentValue())} / ${formatNumber(getTargetValue())}${type === 'calories' ? ' kcal' : ' tasks'}`
+                            }
                         </Text>
                     </View>
                 </View>
 
-                {/* Value Input */}
-                <View style={{ marginBottom: 24 }}>
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-                        {type === 'water' && 'Cups of Water'}
-                        {type === 'calories' && 'Calories'}
-                        {type === 'tasks' && 'Completed Tasks'}
-                    </Text>
-                    <TextInput
-                        value={value}
-                        onChangeText={setValue}
-                        placeholder={getPlaceholder()}
-                        placeholderTextColor={COLORS.textDime}
-                        keyboardType="numeric"
-                        style={{
-                            backgroundColor: COLORS.card,
-                            borderRadius: 12,
-                            padding: 14,
-                            color: COLORS.text,
-                            fontSize: 16,
-                        }}
-                    />
-                </View>
+                {/* Water Tracker for water, TaskTracker for tasks, otherwise text input */}
+                {type === 'water' ? (
+                    <View style={{ marginBottom: 24 }}>
+                        <WaterTracker
+                            current={todayTarget.water.current}
+                            target={todayTarget.water.target}
+                            onAddGlass={addWaterGlass}
+                        />
+                    </View>
+                ) : type === 'tasks' ? (
+                    <View style={{ marginBottom: 24 }}>
+                        <TaskTracker
+                            completed={todayTarget.tasks.completed}
+                            total={todayTarget.tasks.total}
+                            onIncrement={async () => {
+                                if (todayTarget.tasks.completed < todayTarget.tasks.total) {
+                                    await updateTasks(todayTarget.tasks.completed + 1, todayTarget.tasks.total);
+                                }
+                            }}
+                            onDecrement={async () => {
+                                if (todayTarget.tasks.completed > 0) {
+                                    await updateTasks(todayTarget.tasks.completed - 1, todayTarget.tasks.total);
+                                }
+                            }}
+                        />
+                    </View>
+                ) : (
+                    <>
+                        {/* Value Input for calories */}
+                        <View style={{ marginBottom: 24 }}>
+                            <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
+                                Calories
+                            </Text>
+                            <TextInput
+                                value={value}
+                                onChangeText={setValue}
+                                placeholder={getPlaceholder()}
+                                placeholderTextColor={COLORS.textDime}
+                                keyboardType="numeric"
+                                style={{
+                                    backgroundColor: COLORS.card,
+                                    borderRadius: 12,
+                                    padding: 14,
+                                    color: COLORS.text,
+                                    fontSize: 16,
+                                }}
+                            />
+                        </View>
 
-                {/* Save Button */}
-                <Pressable
-                    onPress={handleSave}
-                    disabled={isLoading}
-                    style={{
-                        backgroundColor: COLORS.button,
-                        borderRadius: 12,
-                        padding: 16,
-                        alignItems: 'center',
-                        opacity: isLoading ? 0.6 : 1,
-                    }}
-                >
-                    <Text style={{ color: COLORS.buttonText, fontSize: 16, fontWeight: '600' }}>
-                        {isLoading ? 'Updating...' : 'Update'}
-                    </Text>
-                </Pressable>
+                        {/* Save Button */}
+                        <Pressable
+                            onPress={handleSave}
+                            disabled={isLoading}
+                            style={{
+                                backgroundColor: COLORS.accentBlue,
+                                borderRadius: 12,
+                                padding: 16,
+                                alignItems: 'center',
+                                opacity: isLoading ? 0.6 : 1,
+                            }}
+                        >
+                            <Text style={{ color: COLORS.buttonText, fontSize: 16, fontWeight: '600' }}>
+                                {isLoading ? 'Updating...' : 'Update'}
+                            </Text>
+                        </Pressable>
+                    </>
+                )}
             </ScrollView>
         </SafeAreaView>
     );

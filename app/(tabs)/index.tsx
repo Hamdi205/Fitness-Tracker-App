@@ -1,23 +1,17 @@
+import { CircularProgress } from '@/components/common/CircularProgress';
+import { Divider } from '@/components/common/Divider';
+import { TaskTracker } from '@/components/common/TaskTracker';
+import { TopBar } from '@/components/common/TopBar';
+import { WaterTracker } from '@/components/common/WaterTracker';
+import { COLORS } from '@/constants/colors';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
 import { useAppStore } from '@/store/useAppStore';
+import { calculatePercentage, formatCalories, getDayName } from '@/utils/calculations';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * DashboardScreen
@@ -27,103 +21,18 @@ const COLORS = {
  * Its like view in MVC
  */
 
-// Circular Progress Component
-function CircularProgress({
-    percentage,
-    size = 80,
-    strokeWidth = 8,
-    color = '#4A90E2',
-    label,
-    value,
-    subtitle
-}: {
-    percentage: number;
-    size?: number;
-    strokeWidth?: number;
-    color?: string;
-    label: string;
-    value: string;
-    subtitle?: string;
-}) {
-    return (
-        <View style={{ alignItems: 'center', marginHorizontal: 8 }}>
-            <View style={{ position: 'relative', width: size, height: size }}>
-                {/* Background circle */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderColor: '#2A2A2E',
-                    }}
-                />
-                {/* Progress circle - simplified version using border segments */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        borderRadius: size / 2,
-                        borderWidth: strokeWidth,
-                        borderTopColor: percentage > 0 ? color : 'transparent',
-                        borderRightColor: percentage > 25 ? color : 'transparent',
-                        borderBottomColor: percentage > 50 ? color : 'transparent',
-                        borderLeftColor: percentage > 75 ? color : 'transparent',
-                        transform: [{ rotate: '-90deg' }],
-                    }}
-                />
-                {/* Center content */}
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: size,
-                        height: size,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600' }}>
-                        {value}
-                    </Text>
-                    {subtitle && (
-                        <Text style={{ color: COLORS.textDime, fontSize: 10, marginTop: 2 }}>
-                            {subtitle}
-                        </Text>
-                    )}
-                </View>
-            </View>
-            <Text style={{ color: COLORS.text, fontSize: 12, fontWeight: '500', marginTop: 8 }}>
-                {label}
-            </Text>
-        </View>
-    );
-}
-
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
-    const { todayTarget } = useDailyTargets();
+    const { todayTarget, addWaterGlass, updateTasks } = useDailyTargets();
 
     useEffect(() => {
         loadData();
     }, [loadData]);
 
-    // Calculate percentages
-    const waterPercentage = useMemo(() => {
-        if (todayTarget.water.target === 0) return 0;
-        return Math.min((todayTarget.water.current / todayTarget.water.target) * 100, 100);
-    }, [todayTarget.water]);
-
+    // Calculate percentages using utility function
     const caloriesPercentage = useMemo(() => {
-        if (todayTarget.calories.target === 0) return 0;
-        return Math.min((todayTarget.calories.current / todayTarget.calories.target) * 100, 100);
+        return calculatePercentage(todayTarget.calories.current, todayTarget.calories.target);
     }, [todayTarget.calories]);
-
-    const tasksPercentage = useMemo(() => {
-        if (todayTarget.tasks.total === 0) return 0;
-        return Math.min((todayTarget.tasks.completed / todayTarget.tasks.total) * 100, 100);
-    }, [todayTarget.tasks]);
 
     // Get quick notes (filter by category or get first 3)
     const quickNotes = useMemo(() => {
@@ -142,18 +51,17 @@ export default function DashboardScreen() {
 
     // Calculate workout progress percentage
     const workoutProgress = useMemo(() => {
-        if (workouts.length === 0) return 0;
-        return (completedWorkoutsCount / workouts.length) * 100;
+        return calculatePercentage(completedWorkoutsCount, workouts.length);
     }, [workouts.length, completedWorkoutsCount]);
 
-    // Get current day name
+    // Get current day name using utility function
     const dayName = useMemo(() => {
-        return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        return getDayName();
     }, []);
 
-    // Format calories target with commas
+    // Format calories target with utility function
     const formattedCaloriesTarget = useMemo(() => {
-        return todayTarget.calories.target.toLocaleString('en-US');
+        return formatCalories(todayTarget.calories.target);
     }, [todayTarget.calories.target]);
 
     return (
@@ -165,82 +73,10 @@ export default function DashboardScreen() {
                 >
 
                     {/* === Top Bar === */}
-                    <View
-                        style={{
-                            height: 64,
-                            marginTop: 4,
-                            backgroundColor: COLORS.topBar,
-                            borderRadius: 12,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: 14,
-                            position: 'relative',
-
-                        }}>
-                        {/* space for profil pic */}
-                        <Pressable
-                            onPress={() => router.push('/profile')}
-                            hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
-                            style={{width: 64, height: 64, justifyContent: 'center', alignItems: 'center'}}
-                        >
-                            <View style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: 22,
-                                backgroundColor: '#4A90E2',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
-                                <Ionicons name="person" size={24} color={COLORS.text}/>
-                            </View>
-                        </Pressable>
-
-                        {/* Centered Page title */}
-                        <Text style={{
-                            position: 'absolute',
-                            left: 0,
-                            right: 0,
-                            textAlign: 'center',
-                            fontSize: 18,
-                            fontWeight: '700',
-                            color: COLORS.text
-                        }}>
-                            Dashboard
-                        </Text>
-
-                        {/* Right side icons */}
-                        <View style={{
-                            marginLeft: 'auto',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 12
-                        }}>
-                            {/* Notification icon with badge */}
-                            <View style={{position: 'relative'}}>
-                                <Ionicons name="notifications-outline" size={24} color={COLORS.text}/>
-                                <View style={{
-                                    position: 'absolute',
-                                    top: -2,
-                                    right: -2,
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#E85C5C',
-                                }}/>
-                            </View>
-
-                            {/* Settings icon */}
-                            <Ionicons name="settings-outline" size={24} color={COLORS.text}/>
-                        </View>
-                    </View>
+                    <TopBar title="Dashboard" />
 
                     {/* Subtle divider */}
-                    <View style={{
-                        height: 1,
-                        backgroundColor: COLORS.divider,
-                        marginTop: 8,
-                        marginBottom: 24
-                    }}/>
+                    <Divider />
 
                     {/* === Quick Notes Section === */}
                     <View style={{marginBottom: 24}}>
@@ -335,7 +171,7 @@ export default function DashboardScreen() {
                             <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', marginRight: 8 }}>
                                 {completedWorkoutsCount} Workout{completedWorkoutsCount !== 1 ? 's' : ''} Completed
                             </Text>
-                            <Ionicons name="barbell-outline" size={20} color="#E85C5C" />
+                            <Ionicons name="barbell-outline" size={20} color={COLORS.accent} />
                         </View>
 
                         {/* Progress Bar */}
@@ -348,7 +184,7 @@ export default function DashboardScreen() {
                             <View style={{
                                 height: '100%',
                                 width: `${Math.min(workoutProgress, 100)}%`,
-                                backgroundColor: '#4A90E2',
+                                backgroundColor: COLORS.accentBlue,
                                 borderRadius: 4,
                             }} />
                         </View>
@@ -365,44 +201,57 @@ export default function DashboardScreen() {
                             {dayName} Targets
                         </Text>
 
-                        {/* Circular Progress Indicators */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
-                            <Pressable onPress={() => router.push('/update-target-modal?type=water')}>
-                                <CircularProgress
-                                    percentage={waterPercentage}
-                                    size={80}
-                                    strokeWidth={8}
-                                    color="#4A90E2"
-                                    label="Water"
-                                    value={`${Math.round(waterPercentage)}%`}
-                                    subtitle={`${todayTarget.water.current}/${todayTarget.water.target}`}
+                        {/* Water Tracker */}
+                        <View style={{ marginBottom: 24 }}>
+                            <WaterTracker
+                                current={todayTarget.water.current}
+                                target={todayTarget.water.target}
+                                onAddGlass={addWaterGlass}
+                            />
+                        </View>
+
+                        {/* Tasks Tracker */}
+                        {todayTarget.tasks.total > 0 ? (
+                            <View style={{ marginBottom: 24 }}>
+                                <TaskTracker
+                                    completed={todayTarget.tasks.completed}
+                                    total={todayTarget.tasks.total}
+                                    onIncrement={async () => {
+                                        if (todayTarget.tasks.completed < todayTarget.tasks.total) {
+                                            await updateTasks(todayTarget.tasks.completed + 1, todayTarget.tasks.total);
+                                        }
+                                    }}
+                                    onDecrement={async () => {
+                                        if (todayTarget.tasks.completed > 0) {
+                                            await updateTasks(todayTarget.tasks.completed - 1, todayTarget.tasks.total);
+                                        }
+                                    }}
                                 />
-                            </Pressable>
+                            </View>
+                        ) : (
+                            <View style={{ marginBottom: 24, alignItems: 'center' }}>
+                                <Text style={{ color: COLORS.textDime, fontSize: 14, marginBottom: 16 }}>
+                                    No tasks yet. Add your first task to get started!
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Calories Target */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
                             <Pressable onPress={() => router.push('/update-target-modal?type=calories')}>
                                 <CircularProgress
                                     percentage={caloriesPercentage}
                                     size={80}
                                     strokeWidth={8}
-                                    color="#E85C5C"
+                                    color={COLORS.accent}
                                     label="Calories"
-                                    value={todayTarget.calories.current.toLocaleString('en-US')}
-                                    subtitle={`/${todayTarget.calories.target.toLocaleString('en-US')}`}
-                                />
-                            </Pressable>
-                            <Pressable onPress={() => router.push('/update-target-modal?type=tasks')}>
-                                <CircularProgress
-                                    percentage={tasksPercentage}
-                                    size={80}
-                                    strokeWidth={8}
-                                    color="#4A90E2"
-                                    label="Tasks"
-                                    value={`${todayTarget.tasks.completed}/${todayTarget.tasks.total}`}
-                                    subtitle={todayTarget.tasks.total > 0 ? "Done" : "No tasks"}
+                                    value={formatCalories(todayTarget.calories.current)}
+                                    subtitle={`/${formatCalories(todayTarget.calories.target)}`}
                                 />
                             </Pressable>
                         </View>
 
-                        {/* Calories Target */}
+                        {/* Calories Target Info */}
                         <View style={{ alignItems: 'center', marginBottom: 16 }}>
                             <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
                                 {formattedCaloriesTarget} kcal
@@ -416,15 +265,18 @@ export default function DashboardScreen() {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                padding: 12,
+                                padding: 14,
                                 backgroundColor: COLORS.card,
                                 borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: COLORS.chipBorder,
+                                borderStyle: 'dashed',
                             }}
                         >
-                            <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime}
+                            <Ionicons name="add-circle-outline" size={20} color={COLORS.accentBlue}
                                       style={{marginRight: 8}}/>
-                            <Text style={{color: COLORS.textDime, fontSize: 14}}>
-                                + New task
+                            <Text style={{color: COLORS.accentBlue, fontSize: 14, fontWeight: '600'}}>
+                                Add New Task
                             </Text>
                         </Pressable>
                     </View>

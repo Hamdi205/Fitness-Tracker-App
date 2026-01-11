@@ -1,22 +1,13 @@
+import { Divider } from '@/components/common/Divider';
+import { TopBar } from '@/components/common/TopBar';
+import { COLORS } from '@/constants/colors';
+import { formatDuration, getStartOfWeek, isDateInCurrentWeek } from '@/utils/calculations';
 import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const COLORS = {
-    bg: '#0E0E10',
-    topBar: '#151517', // slithly different shade the the bg
-    divider: '#212124', // hairline separator 
-    chip: '#2E2E33',
-    chipBorder: '#3A3A40',
-    text: '#FFFFFF',
-    textDime: '#AAAAAA',
-    card: '#1A1A1E',
-    cardSecondary: '#2A2A2A',
-    textSecondary: '#777777'
-}
 
 /**
  * FitnessScreen
@@ -58,26 +49,20 @@ export default function FitnessScreen() {
         const completedWorkouts = workoutsArray.filter(w => w.completedAt);
         const totalWorkouts = completedWorkouts.length;
 
-        // Calculate workouts completed this week
-        const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-        startOfWeek.setHours(0, 0, 0, 0);
-
+        // Calculate workouts completed this week using utility function
         const workoutsThisWeek = completedWorkouts.filter(w => {
             const completedDate = new Date(w.completedAt!);
-            return completedDate >= startOfWeek;
+            return isDateInCurrentWeek(completedDate);
         }).length;
 
-        // Calculate total time (sum of all completed workout durations)
+        // Calculate total time using utility function
         const totalMinutes = completedWorkouts.reduce((sum, w) => sum + (w.duration || 0), 0);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
+        const totalTime = formatDuration(totalMinutes);
 
         return {
             total: totalWorkouts,
             thisWeek: workoutsThisWeek,
-            totalTime: { hours, minutes },
+            totalTime,
         };
     }, [workoutsArray]);
 
@@ -93,82 +78,10 @@ export default function FitnessScreen() {
             >
 
             {/* === Top Bar === */}
-            <View
-                style={{
-                    height: 64,
-                    marginTop: 4,
-                    backgroundColor: COLORS.topBar,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    position: 'relative',
-                    
-                }}>
-                {/* space for profil pic */}
-                <Pressable 
-                    onPress={() => router.push('/profile')}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                    style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}
-                >
-                    <View style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor: '#4A90E2',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}>
-                        <Ionicons name="person" size={24} color={COLORS.text} />
-                    </View>
-                </Pressable>
-
-                {/* Centered Page title */}
-                    <Text style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: COLORS.text
-                    }}>
-                        Fitness
-                    </Text>
-
-                {/* Right side icons */}
-                <View style={{
-                    marginLeft: 'auto',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12
-                }}>
-                    {/* Notification icon with badge */}
-                    <View style={{ position: 'relative' }}>
-                        <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-                        <View style={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: '#E85C5C',
-                        }} />
-                    </View>
-                    
-                    {/* Settings icon */}
-                    <Ionicons name="settings-outline" size={24} color={COLORS.text} />
-                </View>
-            </View>
+            <TopBar title="Fitness" />
 
             {/* Subtle divider */}
-            <View style={{
-                height: 1,
-                backgroundColor: COLORS.divider,
-                marginTop: 8,
-                marginBottom: 24
-            }} />
+            <Divider />
 
             {/* === Start Workout Section === */}
             <View style={{ marginBottom: 24 }}>
@@ -184,7 +97,7 @@ export default function FitnessScreen() {
                         opacity: activeWorkout ? 1 : 0.7,
                     }}
                 >
-                    <Ionicons name="play-circle" size={32} color="#E85C5C" style={{ marginRight: 12 }} />
+                    <Ionicons name="play-circle" size={32} color={COLORS.accent} style={{ marginRight: 12 }} />
                     <Text style={{ color: COLORS.text, fontSize: 20, fontWeight: '700' }}>
                         {activeWorkout ? `Start: ${activeWorkout.name}` : 'Start Workout'}
                     </Text>
