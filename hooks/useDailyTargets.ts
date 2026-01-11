@@ -40,22 +40,23 @@ export function useDailyTargets() {
         });
     };
 
-    const updateCalories = async (value: number) => {
+    const removeWaterGlass = async () => {
         const current = dailyTargets[today] || {
             date: today,
             water: { current: 0, target: 2.0 },
             calories: { current: 0, target: 2500 },
             tasks: [],
         };
+        const newValue = Math.max(0, current.water.current - 0.25); // Remove 0.25L per glass, but don't go below 0
         await updateDailyTarget(today, {
-            calories: { ...current.calories, current: value },
+            water: { ...current.water, current: newValue },
         });
     };
 
     return {
         todayTarget,
         updateWater,
-        updateCalories,
         addWaterGlass,
+        removeWaterGlass,
     };
 }
