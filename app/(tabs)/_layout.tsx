@@ -7,7 +7,7 @@ import { Tabs } from 'expo-router';
  * Defines the bottom tab navigation for the app
  * 
  * Mental model:
- * - This file acts as the "navigation controller" for everything inside the (tabs) folder
+ * - This file acts as the "navigation contller" for everything inside the (tabs) folder
  * - Each Tabs.Screen maps directly to a file in this folder
  * 
  * Example:

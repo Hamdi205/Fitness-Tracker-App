@@ -12,8 +12,8 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function UpdateTargetModal() {
-    const { type } = useLocalSearchParams<{ type: 'water' | 'calories' | 'tasks' }>();
-    const { todayTarget, updateWater, updateCalories,, addWaterGlass } = useDailyTargets();
+    const { type } = useLocalSearchParams<{ type: 'water' | 'calories'  }>();
+    const { todayTarget, updateWater, updateCalories, addWaterGlass } = useDailyTargets();
     const [value, setValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -23,8 +23,6 @@ export default function UpdateTargetModal() {
                 return 'Update Water';
             case 'calories':
                 return 'Update Calories';
-            case 'tasks':
-                return 'Update Tasks';
             default:
                 return 'Update Target';
         }
@@ -36,8 +34,6 @@ export default function UpdateTargetModal() {
                 return todayTarget.water.current;
             case 'calories':
                 return todayTarget.calories.current;
-            case 'tasks':
-                return todayTarget.tasks.completed;
             default:
                 return 0;
         }
@@ -49,8 +45,6 @@ export default function UpdateTargetModal() {
                 return todayTarget.water.target;
             case 'calories':
                 return todayTarget.calories.target;
-            case 'tasks':
-                return todayTarget.tasks.total;
             default:
                 return 0;
         }
@@ -62,8 +56,6 @@ export default function UpdateTargetModal() {
                 return `Current: ${todayTarget.water.current.toFixed(2)} L`;
             case 'calories':
                 return `Current: ${formatCalories(todayTarget.calories.current)} kcal`;
-            case 'tasks':
-                return `Completed: ${todayTarget.tasks.completed} tasks`;
             default:
                 return 'Enter value';
         }
@@ -85,10 +77,6 @@ export default function UpdateTargetModal() {
                     break;
                 case 'calories':
                     await updateCalories(numValue);
-                    break;
-                case 'tasks':
-                    // For tasks, we update completed count
-                    await updateTasks(numValue, todayTarget.tasks.total);
                     break;
             }
             router.back();
