@@ -1,7 +1,7 @@
 // store/useAppStore.ts
 import { create } from 'zustand';
 import { storage } from '@/lib/storage/storage';
-import type { Note, Workout, Goal, DailyTarget } from "@/.expo/types";
+import type { Note, Workout, Goal, DailyTarget, Task } from "@/.expo/types";
 
 interface AppState {
     // State
@@ -32,23 +32,14 @@ interface AppState {
     addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
     toggleTask: (taskId: string) => Promise<void>;
     deleteTask: (taskId: string) => Promise<void>;
-    
-    // I create-funksjonen
-    addTask: async (taskData) => {
-        const today = new Date().toISOString().split('T')[0];
-        const current = get().dailyTargets[today] || {
-            date: today,
-            water: { current: 0, target: 2.0 },
-            calories: { current: 0, target 2500 },
-            tasks: [],
-        };
-}
-    
     updateDailyTarget: (date: string, target: Partial<DailyTarget>) => Promise<void>;
-    getTodayTarget: () => DailyTarget;
+    getTodayTarget: () => DailyTarget; 
+
+    
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+
+export const useAppStore = create<AppState>()((set, get) => ({
     notes: [],
     workouts: [],
     goals: [],
@@ -152,12 +143,70 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ goals: updatedGoals });
     },
 
+    addTask: async (taskData) => {
+        const today = new Date().toISOString().split('T')[0];
+        const current = get().dailyTargets[today] || {
+            date: today, 
+            water: { current: 0, target: 2.0 },
+            calories: { current: 0, target: 2500 },
+            tasks: [],
+        };
+
+    const newTask: Task = {
+        ...taskData,
+        id: Date.now().toString(),
+        createdAt: new Date(),
+    };
+
+    const updated = {
+        ...current,
+        tasks: [...current.tasks, newTask],
+    };
+
+    const updatedTargets = { ...get().dailyTargets, [today]: updated };
+    await storage.saveDailyTargets(updatedTargets);
+    set({ dailyTargets: updatedTargets });
+},
+    toggleTask: async (taskId) => {
+        const today = new Date().toISOString().split('T')[0];
+        const current = get().dailyTargets[today];
+        if (!current) return;
+
+        const updated = {
+            ...current,
+            tasks: current.tasks.map(task =>
+                task.id === taskId
+                ? { ...task, completed: !task.completed }
+                : task
+            ),
+        };
+
+        const updatedTargets = { ...get().dailyTargets, [today]: updated };
+        await storage.saveDailyTargets(updatedTargets);
+        set({ dailyTargets: updatedTargets });
+    },
+
+    deleteTask: async (taskId) => {
+        const today = new Date().toISOString().split('T')[0];
+        const current = get().dailyTargets[today];
+        if (!current) return;
+
+        const updated = {
+            ...current,
+            tasks: current.tasks.filter(task => task.id !== taskId),
+        };
+
+        const updatedTargets = { ...get().dailyTargets, [today]: updated };
+        await storage.saveDailyTargets(updatedTargets);
+        set({ dailyTargets: updatedTargets });
+    },
+
     updateDailyTarget: async (date, updates) => {
         const current = get().dailyTargets[date] || {
             date,
-            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
+            water: { current: 0, target: 2.0 },
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
 
         const updated = { ...current, ...updates };
@@ -170,9 +219,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         const today = new Date().toISOString().split('T')[0];
         return get().dailyTargets[today] || {
             date: today,
-            water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
+            water: { current: 0, target: 2.0 },
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
     },
-}));
+    }));

@@ -11,7 +11,7 @@ export function useDailyTargets() {
             date: today,
             water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
     }, [dailyTargets, today]);
 
@@ -20,7 +20,7 @@ export function useDailyTargets() {
             date: today,
             water: { current: 0, target: 2.0 }, // 2L = 8 glasses of 0.25L
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
         await updateDailyTarget(today, {
             water: { ...current.water, current: value },
@@ -32,7 +32,7 @@ export function useDailyTargets() {
             date: today,
             water: { current: 0, target: 2.0 },
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
         const newValue = current.water.current + 0.25; // Add 0.25L per glass
         await updateDailyTarget(today, {
@@ -40,29 +40,23 @@ export function useDailyTargets() {
         });
     };
 
-    const updateCalories = async (value: number) => {
+    const removeWaterGlass = async () => {
         const current = dailyTargets[today] || {
             date: today,
-            water: { current: 0, target: 8 },
+            water: { current: 0, target: 2.0 },
             calories: { current: 0, target: 2500 },
-            tasks: { completed: 0, total: 0 },
+            tasks: [],
         };
+        const newValue = Math.max(0, current.water.current - 0.25); // Remove 0.25L per glass, but don't go below 0
         await updateDailyTarget(today, {
-            calories: { ...current.calories, current: value },
-        });
-    };
-
-    const updateTasks = async (completed: number, total: number) => {
-        await updateDailyTarget(today, {
-            tasks: { completed, total },
+            water: { ...current.water, current: newValue },
         });
     };
 
     return {
         todayTarget,
         updateWater,
-        updateCalories,
-        updateTasks,
         addWaterGlass,
+        removeWaterGlass,
     };
 }

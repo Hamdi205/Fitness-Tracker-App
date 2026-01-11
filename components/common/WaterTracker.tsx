@@ -6,6 +6,7 @@ interface WaterTrackerProps {
     current: number; // in liters
     target: number; // in liters (default 2L = 8 glasses)
     onAddGlass: () => void;
+    onRemoveGlass?: () => void; // Optional function to remove water
     glassSize?: number; // liters per glass (default 0.25L)
 }
 
@@ -18,7 +19,8 @@ interface WaterTrackerProps {
 export function WaterTracker({ 
     current, 
     target, 
-    onAddGlass, 
+    onAddGlass,
+    onRemoveGlass,
     glassSize = 0.25 
 }: WaterTrackerProps) {
     const totalGlasses = Math.ceil(target / glassSize);
@@ -55,8 +57,10 @@ export function WaterTracker({
             }}>
                 {/* Filled glasses */}
                 {Array.from({ length: filledGlasses }).map((_, index) => (
-                    <View
+                    <Pressable
                         key={`filled-${index}`}
+                        onPress={onRemoveGlass}
+                        disabled={!onRemoveGlass}
                         style={{
                             width: 50,
                             height: 60,
@@ -66,10 +70,11 @@ export function WaterTracker({
                             borderColor: COLORS.accentBlue,
                             justifyContent: 'center',
                             alignItems: 'center',
+                            opacity: onRemoveGlass ? 1 : 1,
                         }}
                     >
                         <Ionicons name="water" size={24} color={COLORS.accentBlue} />
-                    </View>
+                    </Pressable>
                 ))}
                 
                 {/* Partially filled glass (if any) */}

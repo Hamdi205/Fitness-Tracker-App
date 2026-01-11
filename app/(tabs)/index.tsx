@@ -1,12 +1,10 @@
-import { CircularProgress } from '@/components/common/CircularProgress';
 import { Divider } from '@/components/common/Divider';
-import { TaskTracker } from '@/components/common/TaskTracker';
 import { TopBar } from '@/components/common/TopBar';
 import { WaterTracker } from '@/components/common/WaterTracker';
 import { COLORS } from '@/constants/colors';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
 import { useAppStore } from '@/store/useAppStore';
-import { calculatePercentage, formatCalories, getDayName } from '@/utils/calculations';
+import { calculatePercentage, getDayName } from '@/utils/calculations';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
@@ -23,16 +21,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
-    const { todayTarget, addWaterGlass, updateTasks } = useDailyTargets();
+    const { todayTarget, addWaterGlass, removeWaterGlass } = useDailyTargets();
 
     useEffect(() => {
         loadData();
     }, [loadData]);
-
-    // Calculate percentages using utility function
-    const caloriesPercentage = useMemo(() => {
-        return calculatePercentage(todayTarget.calories.current, todayTarget.calories.target);
-    }, [todayTarget.calories]);
 
     // Get quick notes (filter by category or get first 3)
     const quickNotes = useMemo(() => {
@@ -58,11 +51,6 @@ export default function DashboardScreen() {
     const dayName = useMemo(() => {
         return getDayName();
     }, []);
-
-    // Format calories target with utility function
-    const formattedCaloriesTarget = useMemo(() => {
-        return formatCalories(todayTarget.calories.target);
-    }, [todayTarget.calories.target]);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
@@ -207,78 +195,10 @@ export default function DashboardScreen() {
                                 current={todayTarget.water.current}
                                 target={todayTarget.water.target}
                                 onAddGlass={addWaterGlass}
+                                onRemoveGlass={removeWaterGlass}
                             />
                         </View>
-
-                        {/* Tasks Tracker */}
-                        {todayTarget.tasks.total > 0 ? (
-                            <View style={{ marginBottom: 24 }}>
-                                <TaskTracker
-                                    completed={todayTarget.tasks.completed}
-                                    total={todayTarget.tasks.total}
-                                    onIncrement={async () => {
-                                        if (todayTarget.tasks.completed < todayTarget.tasks.total) {
-                                            await updateTasks(todayTarget.tasks.completed + 1, todayTarget.tasks.total);
-                                        }
-                                    }}
-                                    onDecrement={async () => {
-                                        if (todayTarget.tasks.completed > 0) {
-                                            await updateTasks(todayTarget.tasks.completed - 1, todayTarget.tasks.total);
-                                        }
-                                    }}
-                                />
-                            </View>
-                        ) : (
-                            <View style={{ marginBottom: 24, alignItems: 'center' }}>
-                                <Text style={{ color: COLORS.textDime, fontSize: 14, marginBottom: 16 }}>
-                                    No tasks yet. Add your first task to get started!
-                                </Text>
-                            </View>
-                        )}
-
-                        {/* Calories Target */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
-                            <Pressable onPress={() => router.push('/update-target-modal?type=calories')}>
-                                <CircularProgress
-                                    percentage={caloriesPercentage}
-                                    size={80}
-                                    strokeWidth={8}
-                                    color={COLORS.accent}
-                                    label="Calories"
-                                    value={formatCalories(todayTarget.calories.current)}
-                                    subtitle={`/${formatCalories(todayTarget.calories.target)}`}
-                                />
-                            </Pressable>
-                        </View>
-
-                        {/* Calories Target Info */}
-                        <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                            <Text style={{ color: COLORS.textDime, fontSize: 12 }}>
-                                {formattedCaloriesTarget} kcal
-                            </Text>
-                        </View>
-
-                        {/* New Task Button */}
-                        <Pressable
-                            onPress={() => router.push('/add-task-modal')}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: 14,
-                                backgroundColor: COLORS.card,
-                                borderRadius: 12,
-                                borderWidth: 1,
-                                borderColor: COLORS.chipBorder,
-                                borderStyle: 'dashed',
-                            }}
-                        >
-                            <Ionicons name="add-circle-outline" size={20} color={COLORS.accentBlue}
-                                      style={{marginRight: 8}}/>
-                            <Text style={{color: COLORS.accentBlue, fontSize: 14, fontWeight: '600'}}>
-                                Add New Task
-                            </Text>
-                        </Pressable>
+                      
                     </View>
 
                 </ScrollView>
