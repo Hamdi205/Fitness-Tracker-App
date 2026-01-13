@@ -1,8 +1,8 @@
 import { Divider } from '@/components/common/Divider';
 import { TopBar } from '@/components/common/TopBar';
 import { COLORS } from '@/constants/colors';
-import { formatDuration, getStartOfWeek, isDateInCurrentWeek } from '@/utils/calculations';
 import { useAppStore } from '@/store/useAppStore';
+import { formatDuration, isDateInCurrentWeek } from '@/utils/calculations';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  */
 
 export default function FitnessScreen() {
-    const { loadData, workouts } = useAppStore();
+    const { loadData, workouts, startWorkoutSession } = useAppStore();
 
     useEffect(() => {
         loadData();
@@ -65,6 +65,15 @@ export default function FitnessScreen() {
             totalTime,
         };
     }, [workoutsArray]);
+    
+    const handleStartWorkout = async () => {
+        try {
+            const workoutId = await startWorkoutSession();
+            router.push(`/workout-session?workoutId=${workoutId}`);
+        } catch (error) {
+            console.error('Error starting workout', error);
+        }
+    };
 
     // Exercise categories (static for now, but could be derived from exercises in workouts)
     const exerciseCategories = ['Chest', 'Back', 'Legs', 'Arms', 'Shoulders', 'Cardio'];
@@ -86,6 +95,7 @@ export default function FitnessScreen() {
             {/* === Start Workout Section === */}
             <View style={{ marginBottom: 24 }}>
                 <Pressable
+                    onPress={handleStartWorkout}
                     style={{
                         flexDirection: 'row',
                         alignItems: 'center',

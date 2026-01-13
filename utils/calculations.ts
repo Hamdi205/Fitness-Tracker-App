@@ -60,3 +60,28 @@ export function formatDuration(minutes: number): { hours: number; minutes: numbe
     };
 }
 
+/**
+ * Get ISO week number (1-53)
+ */
+export function getWeekNumber(date: Date = new Date()): number {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+/**
+ * Get time-based greeting in Norwegian
+ */
+export function getTimeBasedGreeting(date: Date = new Date()): string {
+    const hour = date.getHours();
+    if (hour >= 5 && hour < 12) {
+        return 'Godmorgen';
+    } else if (hour >= 12 && hour < 18) {
+        return 'God ettermiddag';
+    } else {
+        return 'God kveld';
+    }
+}
+
