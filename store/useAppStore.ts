@@ -1,8 +1,7 @@
 // store/useAppStore.ts
-import { create } from 'zustand';
+import type { DailyTarget, Goal, Note, Task, Workout } from "@/.expo/types";
 import { storage } from '@/lib/storage/storage';
-import type { Note, Workout, Goal, DailyTarget, Task } from "@/.expo/types";
-
+import { create } from 'zustand';
 interface AppState {
     // State
     notes: Note[];
@@ -22,7 +21,10 @@ interface AppState {
     // Workouts
     addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     completeWorkout: (id: string) => Promise<void>;
-
+    startWorkoutSession: (name?: string) => Promise<string>; // Returns workout ID
+    addExerciseToWorkout: (workoutId: string, exercise: { name: string; sets?: number; weight?: number; reps?: number }) => Promise<void>;
+    updateWorkout: (id: string, updates: Partial<Workout>) => Promise<void>;
+    
     // Goals
     addGoal: (goal: Omit<Goal, 'id' | 'createdAt'>) => Promise<void>;
     updateGoalProgress: (id: string, value: number) => Promise<void>;
@@ -112,7 +114,54 @@ export const useAppStore = create<AppState>()((set, get) => ({
         await storage.saveWorkouts(updatedWorkouts);
         set({ workouts: updatedWorkouts });
     },
-
+    
+    startWorkoutSession: async (name) => {
+        const workoutName = name || `Workout ${new Date().toLocaleDateString()}`;
+        const workoutId = Date.now().toString();
+        const newWorkout: Workout = {
+            id: workoutId,
+            name: workoutName,
+            exercises: [],
+            duration: 0,
+            completedAt: undefined as any,
+        };
+        
+        const updatedWorkouts = [...get().workouts, newWorkout];
+        await storage.saveWorkouts(updatedWorkouts);
+        set({ workouts: updatedWorkouts });
+        return workoutId;
+    },
+    
+    addExerciseToWorkout: async (workoutId, exercise) => {
+        const updatedWorkouts = get().workouts.map(workout =>
+            workout.id === workoutId
+                ? {
+                    ...workout,
+                    exercises: [...(workout.exercises || []), {
+                        id: Date.now().toString(),
+                        name: exercise.name,
+                        category: 'Other',
+                        sets: exercise.sets || 0,
+                        reps: exercise.reps || 0,
+                        weight: exercise.weight || 0,
+                    }]
+                }
+                : workout
+        );
+        await storage.saveWorkouts(updatedWorkouts);
+        set({ workouts: updatedWorkouts });
+    },
+    
+    updateWorkout: async (id, updates) => {
+        const updatedWorkouts = get().workouts.map(workout =>
+            workout.id === id
+                ? { ...workout, ...updates }
+                : workout
+        );
+        await storage.saveWorkouts(updatedWorkouts);
+        set({ workouts: updatedWorkouts });
+    },
+    
     addGoal: async (goalData) => {
         const newGoal: Goal = {
             ...goalData,
@@ -152,21 +201,21 @@ export const useAppStore = create<AppState>()((set, get) => ({
             tasks: [],
         };
 
-    const newTask: Task = {
-        ...taskData,
-        id: Date.now().toString(),
-        createdAt: new Date(),
-    };
+        const newTask: Task = {
+            ...taskData,
+            id: Date.now().toString(),
+            createdAt: new Date(),
+        };
 
-    const updated = {
-        ...current,
-        tasks: [...current.tasks, newTask],
-    };
+        const updated = {
+            ...current,
+            tasks: [...current.tasks, newTask],
+        };
 
-    const updatedTargets = { ...get().dailyTargets, [today]: updated };
-    await storage.saveDailyTargets(updatedTargets);
-    set({ dailyTargets: updatedTargets });
-},
+        const updatedTargets = { ...get().dailyTargets, [today]: updated };
+        await storage.saveDailyTargets(updatedTargets);
+        set({ dailyTargets: updatedTargets });
+    },
     toggleTask: async (taskId) => {
         const today = new Date().toISOString().split('T')[0];
         const current = get().dailyTargets[today];

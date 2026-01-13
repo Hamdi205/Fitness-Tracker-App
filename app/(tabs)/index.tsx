@@ -1,5 +1,5 @@
 import { Divider } from '@/components/common/Divider';
-import { TopBar } from '@/components/common/TopBar';
+import { MinimalTopBar } from '@/components/common/MinimalTopBar';
 import { WaterTracker } from '@/components/common/WaterTracker';
 import { COLORS } from '@/constants/colors';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
@@ -60,8 +60,8 @@ export default function DashboardScreen() {
                     showsVerticalScrollIndicator={false}
                 >
 
-                    {/* === Top Bar === */}
-                    <TopBar title="Dashboard" />
+                    {/* === Minimal Top Bar === */}
+                    <MinimalTopBar />
 
                     {/* Subtle divider */}
                     <Divider />
