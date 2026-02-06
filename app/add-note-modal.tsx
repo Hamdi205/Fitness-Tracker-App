@@ -1,8 +1,7 @@
 import { TopBar } from '@/components/common/TopBar';
 import { COLORS } from '@/constants/colors';
-import { validateNoteTitle } from '@/utils/validation';
 import { useAppStore } from '@/store/useAppStore';
-import { Ionicons } from '@expo/vector-icons';
+import { validateNoteTitle } from '@/utils/validation';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';

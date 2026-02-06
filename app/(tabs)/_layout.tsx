@@ -43,18 +43,7 @@ export default function TabsLayout() {
                 tabBarInactiveTintColor: '#888'
             }}
         >
-            {/* --- Dashboard Tab --- */}
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: 'Dashboard',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home-outline" size={size} color={color} />
-                    ),
-                }}
-            />
-
-            {/* --- Fitness Tab --- */}
+            {/* Left: Fitness */}
             <Tabs.Screen
                 name="fitness"
                 options={{
@@ -65,26 +54,36 @@ export default function TabsLayout() {
                 }}
             />
 
-            {/* --- Notes Tab --- */}
+            {/* Middle: Dashboard */}
             <Tabs.Screen
-                name="notes"
+                name="index"
                 options={{
-                    title: 'Notes',
+                    title: 'Dashboard',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="document-text-outline" size={size} color={color} />
+                        <Ionicons name="home-outline" size={size} color={color} />
                     ),
                 }}
             />
 
-            {/* --- Goals Tab --- */}
+            {/* Right: Nova (AI assistant placeholder) */}
             <Tabs.Screen
-                name="goals"
+                name="nova"
                 options={{
-                    title: 'Goals',
+                    title: 'Nova',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="flag-outline" size={size} color={color} />
+                        <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
                     ),
                 }}
+            />
+
+            {/* Hidden from tab bar — still reachable via router */}
+            <Tabs.Screen
+                name="notes"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="goals"
+                options={{ href: null }}
             />
         </Tabs>
     );
