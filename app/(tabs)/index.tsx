@@ -11,14 +11,19 @@ import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const SECTION_CARD = {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.chipBorder,
+    overflow: 'hidden' as const,
+};
+
 /**
  * DashboardScreen
  * ---
- * This is the main landing screen of the app
- *
- * Its like view in MVC
+ * Main landing screen with quick notes, workout tracker, and daily targets.
  */
-
 export default function DashboardScreen() {
     const { loadData, notes, workouts } = useAppStore();
     const { todayTarget, addWaterGlass, removeWaterGlass } = useDailyTargets();
@@ -27,170 +32,189 @@ export default function DashboardScreen() {
         loadData();
     }, [loadData]);
 
-    // Get quick notes (filter by category or get first 3)
-    const quickNotes = useMemo(() => {
-        return notes.slice(0, 3);
-    }, [notes]);
-
-    // Get next workout (first incomplete workout)
-    const nextWorkout = useMemo(() => {
-        return workouts.find(w => !w.completedAt);
-    }, [workouts]);
-
-    // Count completed workouts
-    const completedWorkoutsCount = useMemo(() => {
-        return workouts.filter(w => w.completedAt).length;
-    }, [workouts]);
-
-    // Calculate workout progress percentage
-    const workoutProgress = useMemo(() => {
-        return calculatePercentage(completedWorkoutsCount, workouts.length);
-    }, [workouts.length, completedWorkoutsCount]);
-
-    // Get current day name using utility function
-    const dayName = useMemo(() => {
-        return getDayName();
-    }, []);
+    const quickNotes = useMemo(() => notes.slice(0, 3), [notes]);
+    const nextWorkout = useMemo(() => workouts.find(w => !w.completedAt), [workouts]);
+    const completedWorkoutsCount = useMemo(() => workouts.filter(w => w.completedAt).length, [workouts]);
+    const workoutProgress = useMemo(
+        () => calculatePercentage(completedWorkoutsCount, workouts.length),
+        [workouts.length, completedWorkoutsCount]
+    );
+    const dayName = useMemo(() => getDayName(), []);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
-                <ScrollView
-                    style={{flex: 1}}
-                    contentContainerStyle={{padding: 16}}
-                    showsVerticalScrollIndicator={false}
-                >
+            <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
+                showsVerticalScrollIndicator={false}
+            >
+                <MinimalTopBar />
+                <Divider />
 
-                    {/* === Minimal Top Bar === */}
-                    <MinimalTopBar />
-
-                    {/* Subtle divider */}
-                    <Divider />
-
-                    {/* === Quick Notes Section === */}
-                    <View style={{marginBottom: 24}}>
-                        <Text style={{
-                            fontSize: 20,
-                            fontWeight: '600',
-                            color: COLORS.text,
-                            marginBottom: 12
+                {/* --- Quick Notes --- */}
+                <View style={{ marginBottom: 28 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+                        <View style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            backgroundColor: COLORS.accentBlue + '22',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 12,
                         }}>
+                            <Ionicons name="document-text" size={20} color={COLORS.accentBlue} />
+                        </View>
+                        <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.text }}>
                             Quick Notes
                         </Text>
+                    </View>
 
-                        {/* New Quick Notes*/}
-                        <Pressable 
+                    <View style={SECTION_CARD}>
+                        <Pressable
                             onPress={() => router.push('/add-note-modal')}
-                            style={{
+                            style={({ pressed }) => ({
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                padding: 14,
-                                borderRadius: 12,
-                                backgroundColor: COLORS.cardSecondary,
-                                marginBottom: 12
-                            }}
+                                padding: 16,
+                                backgroundColor: pressed ? COLORS.chip : COLORS.cardSecondary,
+                                borderBottomWidth: quickNotes.length > 0 ? 1 : 0,
+                                borderBottomColor: COLORS.divider,
+                            })}
                         >
-                            <Ionicons name="add-circle-outline" size={20} color={COLORS.textDime}
-                                      style={{marginRight: 8}}/>
-                            <Text style={{color: COLORS.textDime, fontSize: 16}}>
-                                + New quick notes ...
+                            <View style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 12,
+                                backgroundColor: COLORS.accentBlue + '20',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: 14,
+                            }}>
+                                <Ionicons name="add" size={22} color={COLORS.accentBlue} />
+                            </View>
+                            <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '500' }}>
+                                New quick note
                             </Text>
                         </Pressable>
 
-                        {/* Notes List */}
-                        <View>
-                            {quickNotes.length > 0 ? (
-                                quickNotes.map((note) => (
-                                    <View
-                                        key={note.id}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            paddingVertical: 12,
-                                            paddingHorizontal: 8,
-                                        }}
-                                    >
-                                        <Ionicons name="document-text-outline" size={18} color={COLORS.textDime}
-                                                  style={{ marginRight: 12 }} />
-                                        <Text style={{ color: COLORS.text, fontSize: 14 }}>
-                                            {note.title}
-                                        </Text>
-                                    </View>
-                                ))
-                            ) : (
-                                <View style={{
-                                    paddingVertical: 12,
-                                    paddingHorizontal: 8,
-                                    opacity: 0.6,
-                                }}>
-                                    <Text style={{ color: COLORS.textDime, fontSize: 14, fontStyle: 'italic' }}>
-                                        No notes yet
+                        {quickNotes.length > 0 ? (
+                            quickNotes.map((note, i) => (
+                                <View
+                                    key={note.id}
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        paddingVertical: 14,
+                                        paddingHorizontal: 16,
+                                        borderBottomWidth: i < quickNotes.length - 1 ? 1 : 0,
+                                        borderBottomColor: COLORS.divider,
+                                    }}
+                                >
+                                    <Ionicons name="document-text-outline" size={20} color={COLORS.textDime} style={{ marginRight: 12 }} />
+                                    <Text style={{ color: COLORS.text, fontSize: 15, flex: 1 }} numberOfLines={1}>
+                                        {note.title}
                                     </Text>
+                                    <Ionicons name="chevron-forward" size={18} color={COLORS.textDime} />
                                 </View>
-                            )}
-                        </View>
+                            ))
+                        ) : (
+                            <View style={{ padding: 20, alignItems: 'center' }}>
+                                <Text style={{ color: COLORS.textDime, fontSize: 14 }}>
+                                    No notes yet — tap above to add one
+                                </Text>
+                            </View>
+                        )}
                     </View>
+                </View>
 
-                    {/* === Workout Tracker Section === */}
-                    <View style={{marginBottom: 24}}>
-                        <Text style={{
-                            fontSize: 20,
-                            fontWeight: '600',
-                            color: COLORS.text,
-                            marginBottom: 12
+                {/* --- Workout Tracker --- */}
+                <View style={{ marginBottom: 28 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+                        <View style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            backgroundColor: COLORS.accent + '22',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 12,
                         }}>
+                            <Ionicons name="barbell" size={20} color={COLORS.accent} />
+                        </View>
+                        <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.text }}>
                             Workout Tracker
                         </Text>
-
-                        {/* Next Workout Card */}
-                        <View style={{
-                            padding: 16,
-                            backgroundColor: COLORS.card,
-                            borderRadius: 12,
-                            marginBottom: 16,
-                            opacity: nextWorkout ? 1 : 0.6,
-                        }}>
-                            <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', fontStyle: nextWorkout ? 'normal' : 'italic' }}>
-                                {nextWorkout ? `Next up: ${nextWorkout.name}` : 'Next up: No plan yet'}
-                            </Text>
-                        </View>
-
-                        {/* Workouts Completed */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                            <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600', marginRight: 8 }}>
-                                {completedWorkoutsCount} Workout{completedWorkoutsCount !== 1 ? 's' : ''} Completed
-                            </Text>
-                            <Ionicons name="barbell-outline" size={20} color={COLORS.accent} />
-                        </View>
-
-                        {/* Progress Bar */}
-                        <View style={{
-                            height: 8,
-                            backgroundColor: '#2A2A2E',
-                            borderRadius: 4,
-                            overflow: 'hidden',
-                        }}>
-                            <View style={{
-                                height: '100%',
-                                width: `${Math.min(workoutProgress, 100)}%`,
-                                backgroundColor: COLORS.accentBlue,
-                                borderRadius: 4,
-                            }} />
-                        </View>
                     </View>
 
-                    {/* === Daily Targets Section === */}
-                    <View style={{ marginBottom: 24 }}>
-                        <Text style={{
-                            fontSize: 20,
-                            fontWeight: '600',
-                            color: COLORS.text,
-                            marginBottom: 16
+                    <View style={SECTION_CARD}>
+                        <View style={{
+                            padding: 18,
+                            borderBottomWidth: 1,
+                            borderBottomColor: COLORS.divider,
                         }}>
+                            <Text style={{ color: COLORS.textDime, fontSize: 12, fontWeight: '600', marginBottom: 4, letterSpacing: 0.5 }}>
+                                NEXT UP
+                            </Text>
+                            <Text
+                                style={{
+                                    color: nextWorkout ? COLORS.text : COLORS.textDime,
+                                    fontSize: 17,
+                                    fontWeight: '600',
+                                    fontStyle: nextWorkout ? 'normal' : 'italic',
+                                }}
+                            >
+                                {nextWorkout ? nextWorkout.name : 'No plan yet'}
+                            </Text>
+                        </View>
+
+                        <View style={{ padding: 18 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600' }}>
+                                    {completedWorkoutsCount} of {workouts.length} completed
+                                </Text>
+                                <Text style={{ color: COLORS.accent, fontSize: 14, fontWeight: '700' }}>
+                                    {Math.round(workoutProgress)}%
+                                </Text>
+                            </View>
+                            <View style={{
+                                height: 10,
+                                backgroundColor: COLORS.chip,
+                                borderRadius: 5,
+                                overflow: 'hidden',
+                            }}>
+                                <View style={{
+                                    height: '100%',
+                                    width: `${Math.min(workoutProgress, 100)}%`,
+                                    backgroundColor: COLORS.accent,
+                                    borderRadius: 5,
+                                }} />
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* --- Daily Targets --- */}
+                <View style={{ marginBottom: 24 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+                        <View style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            backgroundColor: COLORS.accentBlue + '22',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 12,
+                        }}>
+                            <Ionicons name="water" size={20} color={COLORS.accentBlue} />
+                        </View>
+                        <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.text }}>
                             {dayName} Targets
                         </Text>
+                    </View>
 
-                        {/* Water Tracker */}
-                        <View style={{ marginBottom: 24 }}>
+                    <View style={SECTION_CARD}>
+                        <View style={{ padding: 18 }}>
                             <WaterTracker
                                 current={todayTarget.water.current}
                                 target={todayTarget.water.target}
@@ -198,10 +222,9 @@ export default function DashboardScreen() {
                                 onRemoveGlass={removeWaterGlass}
                             />
                         </View>
-                      
                     </View>
-
-                </ScrollView>
-            </SafeAreaView>
-        );
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
