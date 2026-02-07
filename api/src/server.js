@@ -117,7 +117,9 @@ app.get("/workouts/:id/exercises", async (req, res) => {
 app.listen(3000, () => {
     console.log("Server listening on port 3000");
 });
-curl -X POST http://localhost:3000/workouts \
-  -H "Content-Type: application/json" \
-  -d '{"date":"2026-02-06","note":"Push day"}'
+
+// Example:
+// curl -X POST http://localhost:3000/workouts \
+//   -H "Content-Type: application/json" \
+//   -d '{"date":"2026-02-06","note":"Push day"}'
 
