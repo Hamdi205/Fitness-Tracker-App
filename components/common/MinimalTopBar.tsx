@@ -9,8 +9,7 @@ interface MinimalTopBarProps {
 
 /**
  * Minimalist TopBar component
- * Inspired by Yazio's clean design
- * Shows time-based greeting and week number
+ * Modern header with greeting and week pill
  */
 export function MinimalTopBar({ userName = 'Hamdi' }: MinimalTopBarProps) {
     const greeting = useMemo(() => getTimeBasedGreeting(), []);
@@ -19,33 +18,58 @@ export function MinimalTopBar({ userName = 'Hamdi' }: MinimalTopBarProps) {
     return (
         <View
             style={{
-                paddingVertical: 20,
+                paddingVertical: 16,
                 paddingHorizontal: 0,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
             }}
         >
-            {/* Greeting */}
-            <Text
+            <View style={{ flex: 1, minWidth: 0 }}>
+                <Text
+                    style={{
+                        fontSize: 26,
+                        fontWeight: '700',
+                        color: COLORS.text,
+                        marginBottom: 4,
+                        letterSpacing: -0.4,
+                    }}
+                >
+                    {greeting}, {userName}
+                </Text>
+                <Text
+                    style={{
+                        fontSize: 15,
+                        fontWeight: '400',
+                        color: COLORS.textDime,
+                    }}
+                >
+                    Here’s your overview
+                </Text>
+            </View>
+            <View
                 style={{
-                    fontSize: 28,
-                    fontWeight: '700',
-                    color: COLORS.text,
-                    marginBottom: 4,
+                    backgroundColor: COLORS.chip,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: COLORS.chipBorder + '99',
                 }}
             >
-                {greeting} {userName}
-            </Text>
-
-            {/* Week number */}
-            <Text
-                style={{
-                    fontSize: 16,
-                    fontWeight: '400',
-                    color: COLORS.text,
-                    opacity: 0.8,
-                }}
-            >
-                Uke {weekNumber}
-            </Text>
+                <Text
+                    style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: COLORS.textDime,
+                        letterSpacing: 0.3,
+                    }}
+                >
+                    Uke {weekNumber}
+                </Text>
+            </View>
         </View>
     );
 }
