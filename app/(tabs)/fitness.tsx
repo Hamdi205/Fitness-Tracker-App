@@ -37,7 +37,7 @@ const SECTION_CARD = {
  */
 
 export default function FitnessScreen() {
-    const { loadData, workouts, startWorkoutSession } = useAppStore();
+    const { loadData, workouts } = useAppStore();
 
     useEffect(() => {
         loadData();
@@ -85,12 +85,11 @@ export default function FitnessScreen() {
         };
     }, [workoutsArray]);
     
-    const handleStartWorkout = async () => {
-        try {
-            const workoutId = await startWorkoutSession();
-            router.push(`/workout-session?workoutId=${workoutId}`);
-        } catch (error) {
-            console.error('Error starting workout', error);
+    const handleStartWorkout = () => {
+        if (activeWorkout) {
+            router.push(`/workout-session?workoutId=${activeWorkout.id}`);
+        } else {
+            router.push('/start-workout-modal');
         }
     };
 
