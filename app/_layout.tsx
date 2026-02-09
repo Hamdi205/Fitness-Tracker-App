@@ -20,6 +20,8 @@ export default function RootLayout() {
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="add-note-modal" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="update-target-modal" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="start-workout-modal" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="workout-session" options={{ presentation: 'modal', headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
