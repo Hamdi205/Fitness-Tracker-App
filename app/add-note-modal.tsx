@@ -1,11 +1,31 @@
-import { TopBar } from '@/components/common/TopBar';
+import { SimpleTopBar } from '@/components/common/SimpleTopBar';
 import { COLORS } from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { validateNoteTitle } from '@/utils/validation';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const GRADIENT_COLORS = ['#1a0a1f', '#16122a', '#0E0E10'] as const;
+
+const SECTION_CARD = {
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.chipBorder + '99',
+    overflow: 'hidden' as const,
+    ...(Platform.OS === 'ios'
+        ? {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+          }
+        : { elevation: 6 }),
+};
 
 const CATEGORIES = [
     'Fitness',
@@ -47,118 +67,124 @@ export default function AddNoteModal() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
-            {/* Header */}
-            <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
-                <TopBar 
-                    title="New Note" 
+        <SafeAreaView style={{ flex: 1 }}>
+            <LinearGradient colors={[...GRADIENT_COLORS]} style={{ flex: 1 }}>
+                <SimpleTopBar
+                    title="New Note"
+                    subtitle="Add a quick note"
                     showProfile={false}
-                    showNotifications={false}
-                    showSettings={false}
+                    showBack
                     onBackPress={() => router.back()}
                 />
-            </View>
 
-            <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{ padding: 16 }}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Title Input */}
-                <View style={{ marginBottom: 16 }}>
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-                        Title
-                    </Text>
-                    <TextInput
-                        value={title}
-                        onChangeText={setTitle}
-                        placeholder="Enter note title"
-                        placeholderTextColor={COLORS.textDime}
-                        style={{
-                            backgroundColor: COLORS.card,
-                            borderRadius: 12,
-                            padding: 14,
-                            color: COLORS.text,
-                            fontSize: 16,
-                        }}
-                    />
-                </View>
-
-                {/* Content Input */}
-                <View style={{ marginBottom: 16 }}>
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-                        Content
-                    </Text>
-                    <TextInput
-                        value={content}
-                        onChangeText={setContent}
-                        placeholder="Enter note content (optional)"
-                        placeholderTextColor={COLORS.textDime}
-                        multiline
-                        numberOfLines={6}
-                        textAlignVertical="top"
-                        style={{
-                            backgroundColor: COLORS.card,
-                            borderRadius: 12,
-                            padding: 14,
-                            color: COLORS.text,
-                            fontSize: 16,
-                            minHeight: 120,
-                        }}
-                    />
-                </View>
-
-                {/* Category Selection */}
-                <View style={{ marginBottom: 24 }}>
-                    <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
-                        Category
-                    </Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                        {CATEGORIES.map((cat) => (
-                            <Pressable
-                                key={cat}
-                                onPress={() => setCategory(cat)}
-                                style={{
-                                    paddingVertical: 8,
-                                    paddingHorizontal: 16,
-                                    backgroundColor: category === cat ? COLORS.accentBlue : COLORS.chip,
-                                    borderRadius: 20,
-                                    borderWidth: 1,
-                                    borderColor: category === cat ? COLORS.accentBlue : COLORS.chipBorder,
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        color: category === cat ? COLORS.buttonText : COLORS.text,
-                                        fontSize: 14,
-                                        fontWeight: category === cat ? '600' : '500',
-                                    }}
-                                >
-                                    {cat}
-                                </Text>
-                            </Pressable>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Save Button */}
-                <Pressable
-                    onPress={handleSave}
-                    disabled={isLoading}
-                    style={{
-                        backgroundColor: COLORS.accentBlue,
-                        borderRadius: 12,
-                        padding: 16,
-                        alignItems: 'center',
-                        opacity: isLoading ? 0.6 : 1,
-                    }}
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <Text style={{ color: COLORS.buttonText, fontSize: 16, fontWeight: '600' }}>
-                        {isLoading ? 'Saving...' : 'Save Note'}
-                    </Text>
-                </Pressable>
-            </ScrollView>
+                    <View style={[SECTION_CARD, { marginBottom: 24 }]}>
+                        <View style={{ padding: 20 }}>
+                            <Text style={{ color: COLORS.textDime, fontSize: 11, fontWeight: '600', letterSpacing: 1.2, marginBottom: 10 }}>
+                                TITLE
+                            </Text>
+                            <TextInput
+                                value={title}
+                                onChangeText={setTitle}
+                                placeholder="Enter note title"
+                                placeholderTextColor={COLORS.textDime}
+                                style={{
+                                    backgroundColor: COLORS.chip,
+                                    borderRadius: 14,
+                                    padding: 16,
+                                    color: COLORS.text,
+                                    fontSize: 16,
+                                    fontWeight: '500',
+                                    borderWidth: 1,
+                                    borderColor: COLORS.chipBorder + '99',
+                                }}
+                            />
+                        </View>
+                        <View style={{ height: 1, backgroundColor: COLORS.divider, marginHorizontal: 20 }} />
+                        <View style={{ padding: 20 }}>
+                            <Text style={{ color: COLORS.textDime, fontSize: 11, fontWeight: '600', letterSpacing: 1.2, marginBottom: 10 }}>
+                                CONTENT (OPTIONAL)
+                            </Text>
+                            <TextInput
+                                value={content}
+                                onChangeText={setContent}
+                                placeholder="Add details, links, or ideas…"
+                                placeholderTextColor={COLORS.textDime}
+                                multiline
+                                numberOfLines={5}
+                                textAlignVertical="top"
+                                style={{
+                                    backgroundColor: COLORS.chip,
+                                    borderRadius: 14,
+                                    padding: 16,
+                                    color: COLORS.text,
+                                    fontSize: 16,
+                                    minHeight: 120,
+                                    borderWidth: 1,
+                                    borderColor: COLORS.chipBorder + '99',
+                                }}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={{ marginBottom: 28 }}>
+                        <Text style={{ color: COLORS.textDime, fontSize: 11, fontWeight: '600', letterSpacing: 1.2, marginBottom: 12 }}>
+                            CATEGORY
+                        </Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                            {CATEGORIES.map((cat) => (
+                                <Pressable
+                                    key={cat}
+                                    onPress={() => setCategory(cat)}
+                                    style={({ pressed }) => ({
+                                        paddingVertical: 14,
+                                        paddingHorizontal: 20,
+                                        backgroundColor: category === cat ? COLORS.accentBlue : pressed ? COLORS.chipBorder + '99' : COLORS.chip,
+                                        borderRadius: 20,
+                                        borderWidth: 1,
+                                        borderColor: category === cat ? COLORS.accentBlue : COLORS.chipBorder + '99',
+                                    })}
+                                >
+                                    <Text
+                                        style={{
+                                            color: category === cat ? COLORS.buttonText : COLORS.text,
+                                            fontSize: 14,
+                                            fontWeight: category === cat ? '600' : '500',
+                                        }}
+                                    >
+                                        {cat}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
+
+                    <Pressable
+                        onPress={handleSave}
+                        disabled={isLoading}
+                        style={({ pressed }) => ({
+                            ...SECTION_CARD,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 10,
+                            padding: 18,
+                            backgroundColor: isLoading ? COLORS.accentBlue + '99' : pressed ? COLORS.accentBlue + 'dd' : COLORS.accentBlue,
+                            opacity: isLoading ? 0.9 : 1,
+                        })}
+                    >
+                        <Ionicons name="checkmark-circle" size={22} color={COLORS.buttonText} />
+                        <Text style={{ color: COLORS.buttonText, fontSize: 17, fontWeight: '700' }}>
+                            {isLoading ? 'Saving…' : 'Save Note'}
+                        </Text>
+                    </Pressable>
+                </ScrollView>
+            </LinearGradient>
         </SafeAreaView>
     );
 }
-

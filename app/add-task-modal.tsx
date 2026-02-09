@@ -2,16 +2,28 @@ import { TopBar } from '@/components/common/TopBar';
 import { COLORS } from '@/constants/colors';
 import { validateRequired } from '@/utils/validation';
 import { useDailyTargets } from '@/hooks/useDailyTargets';
+import { useAppStore } from '@/store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useMemo } from 'react';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AddTaskModal() {
-    const { todayTarget, updateTasks } = useDailyTargets();
+    const { todayTarget } = useDailyTargets();
+    const addTask = useAppStore((state) => state.addTask);
     const [taskTitle, setTaskTitle] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Calculate task statistics from the array
+    const taskStats = useMemo(() => {
+        const tasks = todayTarget.tasks || [];
+        return {
+            total: tasks.length,
+            completed: tasks.filter((t) => t.completed).length,
+        };
+    }, [todayTarget.tasks]);
 
     const handleSave = async () => {
         const validation = validateRequired(taskTitle, 'Task title');
@@ -22,9 +34,10 @@ export default function AddTaskModal() {
 
         setIsLoading(true);
         try {
-            // Add a new task (increment total)
-            const newTotal = todayTarget.tasks.total + 1;
-            await updateTasks(todayTarget.tasks.completed, newTotal);
+            await addTask({
+                title: taskTitle.trim(),
+                completed: false,
+            });
             router.back();
         } catch (error) {
             Alert.alert('Error', 'Failed to add task. Please try again.');
@@ -85,7 +98,7 @@ export default function AddTaskModal() {
                             Current Progress
                         </Text>
                         <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
-                            {todayTarget.tasks.completed} of {todayTarget.tasks.total} tasks completed
+                            {taskStats.completed} of {taskStats.total} tasks completed
                         </Text>
                     </View>
                 </View>
